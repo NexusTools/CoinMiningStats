@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QPixmap>
 #include <QTimer>
+#include <QPen>
 
 class Graph : public QDialog
 {
@@ -24,6 +25,15 @@ private slots:
 private:
     QPixmap buffer;
     QTimer ticks;
+
+    QPen green; // I might be an idiot
+    QPen blackpen;
+
+    int offset;
+
+    int lasth;
+    int rlasth;
+    float totalrate;
 };
 
 #endif // GRAPH_H
