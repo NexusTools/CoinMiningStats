@@ -6,6 +6,7 @@ Graph::Graph(QWidget *parent) :
     QDialog(parent)
 {
     setMinimumSize(400, 300);
+    setAttribute(Qt::WA_DeleteOnClose);
     show();
 
     setWindowTitle("Statistics Graph");

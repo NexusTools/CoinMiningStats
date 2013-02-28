@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
         settings.setValue("slush_api", apiKey);
     }
 
+    qDebug() << "Using API Key" << apiKey;
     connect(graphBtn, SIGNAL(clicked()), this, SLOT(showGraph()));
 
     workers->resizeColumnsToContents();
