@@ -1,15 +1,23 @@
 # Qt Build Files
 *.pro.user
-*_moc.cpp
+Makefile
+moc_*.cpp
+ui_*.h
 
-# Object files
+# Project Binary
+BitMinerStats
+
+# Editor Backups
+*~
+
+# Object Files
 *.o
 
 # Libraries
 *.lib
 *.a
 
-# Shared objects (inc. Windows DLLs)
+# Shared Objects
 *.dll
 *.so
 *.so.*
