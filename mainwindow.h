@@ -5,6 +5,7 @@
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <QSettings>
 #include <QTimer>
 
 class Graph;
@@ -30,10 +31,14 @@ signals:
     void receivedAccountData(QVariantMap data);
 
 private:
+    QString apiKey;
+
+
     QNetworkAccessManager accessMan;
     QNetworkReply* networkReply;
     QTimer updateTimer;
 
+    QSettings settings;
     Graph* graph;
 };
 

@@ -2,22 +2,40 @@
 #include "graph.h"
 
 #include <QScriptEngine>
+#include <QInputDialog>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent)
+    QMainWindow(parent),
+    settings()
 {
     setupUi(this);
     updateTimer.setSingleShot(true);
     updateTimer.setInterval(5000);
     connect(&updateTimer, SIGNAL(timeout()), this, SLOT(requestUpdate()));
     networkReply = 0;
-    requestUpdate();
+
+    apiKey = settings.value("slush_api").toString();
+
+    if(apiKey.isNull()) {
+        QInputDialog inputDiag(this);
+        inputDiag.setInputMode(QInputDialog::TextInput);
+        inputDiag.setLabelText("Slush's Pool API Token");
+        inputDiag.exec();
+        apiKey = inputDiag.textValue();
+
+        if(apiKey.isNull())
+            exit(0);
+
+        settings.setValue("slush_api", apiKey);
+    }
 
     connect(graphBtn, SIGNAL(clicked()), this, SLOT(showGraph()));
 
     workers->resizeColumnsToContents();
     graph = 0;
+
+    requestUpdate();
 
 }
 
@@ -40,7 +58,7 @@ void MainWindow::requestUpdate()
     qDebug() << "Requesting Update";
     if(!networkReply)
         networkReply->deleteLater();
-    networkReply = accessMan.get(QNetworkRequest(QUrl("https://mining.bitcoin.cz/accounts/profile/json/149845-edfba9e4969002f148a9258ead4c0883")));
+    networkReply = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
     connect(networkReply, SIGNAL(finished()), this, SLOT(gotReply()));
 }
 
