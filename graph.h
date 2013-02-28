@@ -4,6 +4,7 @@
 #include <QVariantMap>
 #include <QDialog>
 #include <QPixmap>
+#include <QTimer>
 
 class Graph : public QDialog
 {
@@ -17,8 +18,12 @@ public slots:
     void receivedPoolStatsData(QVariantMap data);
     void receivedAccountData(QVariantMap data);
 
+private slots:
+    void tick();
+
 private:
     QPixmap buffer;
+    QTimer ticks;
 };
 
 #endif // GRAPH_H

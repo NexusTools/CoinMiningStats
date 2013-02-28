@@ -18,6 +18,11 @@ Graph::Graph(QWidget *parent) :
     blackpen.setWidth(1);
     blackpen.setColor(QColor(0,0,0));
     show();
+
+    ticks.setInterval(200);
+    ticks.start();
+
+    connect(&ticks, SIGNAL(timeout()), this, SLOT(tick()));
 }
 
 int w=400, h=300;
@@ -34,8 +39,7 @@ void Graph::resizeEvent(QResizeEvent *)
 int lasth = 150;
 int rlasth = 150;
 
-void Graph::paintEvent(QPaintEvent *)
-{
+void Graph::tick(){
     if(buffer.isNull())
         return; // No Buffer Available;
 
@@ -50,9 +54,15 @@ void Graph::paintEvent(QPaintEvent *)
     p.end();
 
     rlasth = lasth;
+    repaint();
+}
 
+void Graph::paintEvent(QPaintEvent *)
+{
+    if(buffer.isNull())
+        return; // No Buffer Available;
 
-
+    QPainter p;
     p.begin(this);
     p.drawPixmap(0, 0, buffer);
     p.end();
