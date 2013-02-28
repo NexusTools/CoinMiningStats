@@ -9,7 +9,7 @@ Graph::Graph(QWidget *parent) :
     setAttribute(Qt::WA_DeleteOnClose);
     show();
 
-    setWindowTitle("Statistics Graph");
+    setWindowTitle("Graph");
     /*
      * I recommend you use a QTimer to make a tick, and draw on the buffer outside of the paint event.
      * Than just call repaint() to flip the buffer onscreen
