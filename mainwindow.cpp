@@ -129,7 +129,7 @@ void MainWindow::accountDataReply()
         return;
     }
 
-    float totalRate = 0;
+    qreal totalRate = 0;
     QVariant data;
     {
         QScriptEngine engine;
