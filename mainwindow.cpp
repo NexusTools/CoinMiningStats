@@ -3,6 +3,7 @@
 
 #include <QScriptEngine>
 #include <QInputDialog>
+#include <QResource>
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -32,12 +33,43 @@ MainWindow::MainWindow(QWidget *parent) :
 
     qDebug() << "Using API Key" << apiKey;
     connect(graphBtn, SIGNAL(clicked()), this, SLOT(showGraph()));
+    connect(tglWidget, SIGNAL(toggled(bool)), this, SLOT(toggleWidget(bool)));
 
     workers->resizeColumnsToContents();
     graph = 0;
 
     requestUpdate();
 
+}
+
+void MainWindow::toggleWidget(bool checked)
+{
+    static QRect oldGeometry;
+
+    hide();
+    Qt::WindowFlags flags = this->windowFlags();
+    if (checked)
+    {
+        oldGeometry = geometry();
+        setStyleSheet(QString((const char*)QResource(":/widget.css").data()));
+        setWindowFlags(flags | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+        setWindowOpacity(0.8);
+        workers->setVisible(false);
+
+        layout()->setSizeConstraint(QLayout::SetFixedSize);
+        resize(width(), layout()->minimumHeightForWidth(width()));
+    }
+    else
+    {
+        setStyleSheet("");
+        setWindowFlags(flags ^ (Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint));
+        setWindowOpacity(1);
+        workers->setVisible(true);
+        layout()->setSizeConstraint(QLayout::SetDefaultConstraint);
+        setGeometry(oldGeometry);
+    }
+
+    QTimer::singleShot(50, this, SLOT(show()));
 }
 
 void MainWindow::graphDestroyed()

@@ -24,3 +24,9 @@ HEADERS += \
 
 SOURCES += \
     graph.cpp
+
+OTHER_FILES += \
+    widget.css
+
+RESOURCES += \
+    resources.qrc

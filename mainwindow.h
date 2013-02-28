@@ -23,6 +23,7 @@ protected:
 public slots:
     void requestUpdate();
     void graphDestroyed();
+    void toggleWidget(bool);
     void showGraph();
     void gotReply();
 

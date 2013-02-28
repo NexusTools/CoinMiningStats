@@ -157,6 +157,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="tglWidget">
+        <property name="text">
+         <string>Widget</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

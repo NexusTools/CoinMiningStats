@@ -7,15 +7,8 @@ Graph::Graph(QWidget *parent) :
 {
     setMinimumSize(400, 300);
     setAttribute(Qt::WA_DeleteOnClose);
-    show();
-
     setWindowTitle("Graph");
-    /*
-     * I recommend you use a QTimer to make a tick, and draw on the buffer outside of the paint event.
-     * Than just call repaint() to flip the buffer onscreen
-     * That way you can draw the new line updates from one of the data events
-     * And use the timer to push the buffer to the left constantly
-     */
+    show();
 }
 
 void Graph::resizeEvent(QResizeEvent *)
