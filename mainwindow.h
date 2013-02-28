@@ -21,14 +21,18 @@ protected:
     void changeEvent(QEvent *e);
 
 public slots:
-    void requestUpdate();
+    void requestPoolStatsUpdate();
+    void requestAccountDataUpdate();
+
+    void accountDataReply();
+    void poolStatsReply();
+
     void graphDestroyed();
     void toggleWidget(bool);
     void showGraph();
-    void gotReply();
 
 signals:
-    void receivedPoolData(QVariantMap data);
+    void receivedPoolStatsData(QVariantMap data);
     void receivedAccountData(QVariantMap data);
 
 private:
@@ -36,8 +40,10 @@ private:
 
 
     QNetworkAccessManager accessMan;
-    QNetworkReply* networkReply;
-    QTimer updateTimer;
+    QNetworkReply* accountDataRequest;
+    QNetworkReply* poolStatsRequest;
+    QTimer updateAccountDataTimer;
+    QTimer updatePoolStatsTimer;
 
     QSettings settings;
     Graph* graph;

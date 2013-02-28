@@ -11,10 +11,17 @@ MainWindow::MainWindow(QWidget *parent) :
     settings()
 {
     setupUi(this);
-    updateTimer.setSingleShot(true);
-    updateTimer.setInterval(5000);
-    connect(&updateTimer, SIGNAL(timeout()), this, SLOT(requestUpdate()));
-    networkReply = 0;
+
+    updateAccountDataTimer.setSingleShot(true);
+    updateAccountDataTimer.setInterval(5000);
+    connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
+
+    updatePoolStatsTimer.setSingleShot(true);
+    updatePoolStatsTimer.setInterval(5000);
+    connect(&updatePoolStatsTimer, SIGNAL(timeout()), this, SLOT(requestPoolStatsUpdate()));
+
+    accountDataRequest = 0;
+    poolStatsRequest = 0;
 
     apiKey = settings.value("slush_api").toString();
 
@@ -38,8 +45,8 @@ MainWindow::MainWindow(QWidget *parent) :
     workers->resizeColumnsToContents();
     graph = 0;
 
-    requestUpdate();
-
+    requestAccountDataUpdate();
+    requestPoolStatsUpdate();
 }
 
 void MainWindow::toggleWidget(bool checked)
@@ -86,39 +93,51 @@ void MainWindow::showGraph(){
     connect(this, SIGNAL(receivedAccountData(QVariantMap)), graph, SLOT(receivedAccountData(QVariantMap)));
 }
 
-void MainWindow::requestUpdate()
+void MainWindow::requestAccountDataUpdate()
 {
-    qDebug() << "Requesting Update";
-    if(!networkReply)
-        networkReply->deleteLater();
-    networkReply = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
-    connect(networkReply, SIGNAL(finished()), this, SLOT(gotReply()));
+    updateAccountDataTimer.stop();
+    qDebug() << "Requesting Account Data Update";
+    if(!accountDataRequest)
+        accountDataRequest->deleteLater();
+    accountDataRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
+    connect(accountDataRequest, SIGNAL(finished()), this, SLOT(accountDataReply()));
 }
 
-void MainWindow::gotReply()
+void MainWindow::requestPoolStatsUpdate()
 {
-    updateTimer.start();
-    networkReply->deleteLater();
-    if(networkReply->error()) {
-        qWarning() << "Request Failed" << networkReply->errorString();
+    qDebug() << "Requesting Pool Statistics Update";
+    if(!poolStatsRequest)
+        poolStatsRequest->deleteLater();
+    poolStatsRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/stats/json/%1").arg(apiKey))));
+    connect(poolStatsRequest, SIGNAL(finished()), this, SLOT(poolStatsReply()));
+}
+
+void MainWindow::accountDataReply()
+{
+    updateAccountDataTimer.start();
+    accountDataRequest->deleteLater();
+    if(accountDataRequest->error()) {
+        qWarning() << "Request Failed" << accountDataRequest->errorString();
 
         workers->horizontalHeader()->setVisible(false);
         workers->clearContents();
         workers->insertRow(0);
-        workers->setItem(0, 0, new QTableWidgetItem(QString("Connection Issue: %1").arg(networkReply->errorString())));
+        workers->setItem(0, 0, new QTableWidgetItem(QString("Connection Issue: %1").arg(accountDataRequest->errorString())));
         workers->resizeColumnsToContents();
 
-        networkReply = 0;
+        accountDataRequest = 0;
         return;
     }
 
+    float totalRate = 0;
     QVariant data;
     {
         QScriptEngine engine;
-        data = engine.evaluate("(" + networkReply->readAll() + ")").toVariant();
+        data = engine.evaluate("(" + accountDataRequest->readAll() + ")").toVariant();
     }
-    if(data.type() == QVariant::Map){
-        QVariantMap map = data.toMap();
+
+    QVariantMap map = data.toMap();
+    if(!map.isEmpty()) {
         qDebug() << map.keys();
         QStringList knownWorkers;
 
@@ -132,6 +151,8 @@ void MainWindow::gotReply()
                 QString workerName = i.key();
                 QVariantMap workerMap = i.value().toMap();
                 knownWorkers.append(workerName);
+
+                totalRate += workerMap.value("hashrate").toFloat();
 
                 int row = -1;
                 for(int a=0; a<workers->rowCount(); a++) {
@@ -166,6 +187,7 @@ void MainWindow::gotReply()
 
         workers->horizontalHeader()->setVisible(true);
         // Set Labels
+        workers_rate->setText(QString("%1MH/s").arg(totalRate));
         confirmed->setText(map.value("confirmed_reward").toString());
         unconfirmed->setText(map.value("unconfirmed_reward").toString());
         estimated->setText(map.value("estimated_reward").toString());
@@ -173,7 +195,50 @@ void MainWindow::gotReply()
     } else {
         qWarning() << "Bad Reply";
     }
-    networkReply = 0;
+    accountDataRequest = 0;
+}
+
+void MainWindow::poolStatsReply()
+{
+    updatePoolStatsTimer.start();
+    poolStatsRequest->deleteLater();
+    if(poolStatsRequest->error()) {
+        qWarning() << "Pool Statistics Request Failed" << poolStatsRequest->errorString();
+
+        poolStatsRequest = 0;
+        return;
+    }
+
+    QVariant data;
+    {
+        QScriptEngine engine;
+        data = engine.evaluate("(" + poolStatsRequest->readAll() + ")").toVariant();
+    }
+
+    QVariantMap map = data.toMap();
+    if(!map.isEmpty()) {
+
+        emit receivedPoolStatsData(map);
+
+        int leastConfirmations = -1;
+        if(map.contains("blocks")) {
+            QVariantMap blocksMap = map.value("blocks").toMap();
+            QVariantMap::iterator i;
+            for (i = blocksMap.begin(); i != blocksMap.end(); ++i) {
+                QVariantMap blockMap = i.value().toMap();
+                if(blockMap.value("reward").toFloat() > 0) {
+                    int confirmationsLeft = 100 - blockMap.value("confirmations").toInt();
+                    if(confirmationsLeft > 0 && (leastConfirmations == -1 || confirmationsLeft < leastConfirmations))
+                        leastConfirmations = confirmationsLeft;
+                }
+            }
+        }
+
+        confirmations_left->setText(QString("%1").arg(leastConfirmations));
+    } else {
+        qWarning() << "Bad Reply";
+    }
+    poolStatsRequest = 0;
 }
 
 void MainWindow::changeEvent(QEvent *e)

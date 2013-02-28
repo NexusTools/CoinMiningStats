@@ -33,7 +33,7 @@ void Graph::paintEvent(QPaintEvent *)
     p.end();
 }
 
-void Graph::receivedPoolData(QVariantMap data){
+void Graph::receivedPoolStatsData(QVariantMap data){
 
 }
 

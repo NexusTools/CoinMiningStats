@@ -14,7 +14,7 @@ public:
     void paintEvent(QPaintEvent *);
     
 public slots:
-    void receivedPoolData(QVariantMap data);
+    void receivedPoolStatsData(QVariantMap data);
     void receivedAccountData(QVariantMap data);
 
 private:
