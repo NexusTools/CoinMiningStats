@@ -191,7 +191,7 @@ void MainWindow::accountDataReply()
         confirmed->setText(map.value("confirmed_reward").toString());
         unconfirmed->setText(map.value("unconfirmed_reward").toString());
         estimated->setText(map.value("estimated_reward").toString());
-        potential->setText(QString("%1").arg(map.value("confirmed_reward").toFloat() + map.value("unconfirmed_reward").toFloat()));
+        potential->setText(QString::number(map.value("confirmed_reward").toFloat() + map.value("unconfirmed_reward").toFloat(), 'f', 8));
     } else {
         qWarning() << "Bad Reply";
     }
