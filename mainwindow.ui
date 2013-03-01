@@ -26,7 +26,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="confirmed">
+           <widget class="ColorIndicatorLabel" name="confirmed">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -52,7 +52,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="estimated">
+           <widget class="ColorIndicatorLabel" name="estimated">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -78,7 +78,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="workers_rate">
+           <widget class="ColorIndicatorLabel" name="workers_rate">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -106,7 +106,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="unconfirmed">
+           <widget class="ColorIndicatorLabel" name="unconfirmed">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -131,7 +131,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="potential">
+           <widget class="ColorIndicatorLabel" name="potential">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -155,7 +155,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="confirmations_left">
+           <widget class="ColorIndicatorLabel" name="confirmations_left">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -299,6 +299,13 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ColorIndicatorLabel</class>
+   <extends>QLabel</extends>
+   <header>colorindicatorlabel.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -12,6 +12,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     setupUi(this);
 
+    confirmed->setMode(ColorIndicatorLabel::BitCoins);
+    unconfirmed->setMode(ColorIndicatorLabel::BitCoins);
+    estimated->setMode(ColorIndicatorLabel::BitCoins);
+    potential->setMode(ColorIndicatorLabel::BitCoins);
+    workers_rate->setMode(ColorIndicatorLabel::HashRate);
+
+    confirmations_left->setUpColor(Qt::red);
+    confirmations_left->setDownColor(Qt::green);
+
     updateAccountDataTimer.setSingleShot(true);
     updateAccountDataTimer.setInterval(5000);
     connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
@@ -75,6 +84,13 @@ void MainWindow::toggleWidget(bool checked)
         layout()->setSizeConstraint(QLayout::SetDefaultConstraint);
         setGeometry(oldGeometry);
     }
+
+    confirmed->setInverted(checked);
+    unconfirmed->setInverted(checked);
+    estimated->setInverted(checked);
+    potential->setInverted(checked);
+    workers_rate->setInverted(checked);
+    confirmations_left->setInverted(checked);
 
     QTimer::singleShot(50, this, SLOT(show()));
 }
@@ -185,13 +201,15 @@ void MainWindow::accountDataReply()
 
         workers->resizeColumnsToContents();
 
+        qreal cw = map.value("confirmed_reward").toReal();
+        qreal uw = map.value("unconfirmed_reward").toReal();
         workers->horizontalHeader()->setVisible(true);
         // Set Labels
-        workers_rate->setText(QString("%1MH/s").arg(totalRate));
-        confirmed->setText(map.value("confirmed_reward").toString());
-        unconfirmed->setText(map.value("unconfirmed_reward").toString());
-        estimated->setText(map.value("estimated_reward").toString());
-        potential->setText(QString::number(map.value("confirmed_reward").toFloat() + map.value("unconfirmed_reward").toFloat(), 'f', 8));
+        workers_rate->setValue(totalRate);
+        confirmed->setValue(cw);
+        unconfirmed->setValue(uw);
+        estimated->setValue(map.value("estimated_reward").toReal());
+        potential->setValue(cw + uw);
     } else {
         qWarning() << "Bad Reply";
     }
@@ -226,7 +244,7 @@ void MainWindow::poolStatsReply()
             QVariantMap::iterator i;
             for (i = blocksMap.begin(); i != blocksMap.end(); ++i) {
                 QVariantMap blockMap = i.value().toMap();
-                if(blockMap.value("reward").toFloat() > 0) {
+                if(blockMap.value("reward").toReal() > 0) {
                     int confirmationsLeft = 100 - blockMap.value("confirmations").toInt();
                     if(confirmationsLeft > 0 && (leastConfirmations == -1 || confirmationsLeft < leastConfirmations))
                         leastConfirmations = confirmationsLeft;

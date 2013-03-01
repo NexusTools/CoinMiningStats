@@ -26,3 +26,9 @@ OTHER_FILES += \
 
 RESOURCES += \
     resources.qrc
+
+HEADERS += \
+    colorindicatorlabel.h
+
+SOURCES += \
+    colorindicatorlabel.cpp
