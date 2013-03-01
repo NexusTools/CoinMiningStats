@@ -22,11 +22,11 @@ MainWindow::MainWindow(QWidget *parent) :
     confirmations_left->setDownColor(Qt::green);
 
     updateAccountDataTimer.setSingleShot(true);
-    updateAccountDataTimer.setInterval(5000);
+    updateAccountDataTimer.setInterval(30000);
     connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
 
     updatePoolStatsTimer.setSingleShot(true);
-    updatePoolStatsTimer.setInterval(5000);
+    updatePoolStatsTimer.setInterval(60000 * 10);
     connect(&updatePoolStatsTimer, SIGNAL(timeout()), this, SLOT(requestPoolStatsUpdate()));
 
     accountDataRequest = 0;
