@@ -34,7 +34,7 @@ private:
     bool inverted;
 
     QTimer updateTimer;
-    qreal v;
+    qreal v, dv;
     Mode m;
 };
 

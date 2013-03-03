@@ -7,6 +7,7 @@ ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
     QLabel(parent)
 {
     m = Other;
+    dv = 0;
     v = 0;
 
     r = 0;

@@ -18,9 +18,6 @@ MainWindow::MainWindow(QWidget *parent) :
     potential->setMode(ColorIndicatorLabel::BitCoins);
     workers_rate->setMode(ColorIndicatorLabel::HashRate);
 
-    confirmations_left->setUpColor(Qt::red);
-    confirmations_left->setDownColor(Qt::green);
-
     updateAccountDataTimer.setSingleShot(true);
     updateAccountDataTimer.setInterval(30000);
     connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
@@ -90,7 +87,7 @@ void MainWindow::toggleWidget(bool checked)
     estimated->setInverted(checked);
     potential->setInverted(checked);
     workers_rate->setInverted(checked);
-    confirmations_left->setInverted(checked);
+    //confirmations_left->setInverted();
 
     QTimer::singleShot(50, this, SLOT(show()));
 }
@@ -235,10 +232,10 @@ void MainWindow::poolStatsReply()
 
     QVariantMap map = data.toMap();
     if(!map.isEmpty()) {
-
+        qreal reward = 0;
         emit receivedPoolStatsData(map);
-
         int leastConfirmations = -1;
+        int unconfirmedblocks = 0;
         if(map.contains("blocks")) {
             QVariantMap blocksMap = map.value("blocks").toMap();
             QVariantMap::iterator i;
@@ -246,13 +243,20 @@ void MainWindow::poolStatsReply()
                 QVariantMap blockMap = i.value().toMap();
                 if(blockMap.value("reward").toReal() > 0) {
                     int confirmationsLeft = 100 - blockMap.value("confirmations").toInt();
-                    if(confirmationsLeft > 0 && (leastConfirmations == -1 || confirmationsLeft < leastConfirmations))
-                        leastConfirmations = confirmationsLeft;
+                    if(confirmationsLeft > 0) {
+                        if((leastConfirmations == -1 || confirmationsLeft < leastConfirmations)) {
+                            leastConfirmations = confirmationsLeft;
+                            reward = blockMap.value("reward").toReal();
+                        }
+                        unconfirmedblocks++;
+                    }
                 }
             }
         }
 
-        confirmations_left->setText(QString("%1").arg(leastConfirmations));
+        unconfirmed_blocks->setValue(unconfirmedblocks);
+        next_reward->setValue(reward);
+        confirmations_left->setValue(leastConfirmations);
     } else {
         qWarning() << "Bad Reply";
     }

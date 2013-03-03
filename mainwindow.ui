@@ -6,27 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>497</width>
-    <height>482</height>
+    <width>515</width>
+    <height>433</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout_9">
+   <layout class="QVBoxLayout" name="verticalLayout_13">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_5">
+       <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
+         <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="label_8">
             <property name="text">
-             <string>Confirmed Reward</string>
+             <string>Worker Rate</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="ColorIndicatorLabel" name="confirmed">
+           <widget class="ColorIndicatorLabel" name="workers_rate">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -36,7 +36,7 @@
              </font>
             </property>
             <property name="text">
-             <string>0.00000000</string>
+             <string>0MH/s</string>
             </property>
            </widget>
           </item>
@@ -69,16 +69,16 @@
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_8">
+         <layout class="QVBoxLayout" name="verticalLayout_10">
           <item>
-           <widget class="QLabel" name="label_8">
+           <widget class="QLabel" name="label_11">
             <property name="text">
-             <string>Worker Rate</string>
+             <string>Blockchain Height</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="ColorIndicatorLabel" name="workers_rate">
+           <widget class="ColorIndicatorLabel" name="blockchain_height">
             <property name="font">
              <font>
               <family>Monospace</family>
@@ -86,7 +86,7 @@
              </font>
             </property>
             <property name="text">
-             <string>0MH/s</string>
+             <string>0</string>
             </property>
            </widget>
           </item>
@@ -95,7 +95,33 @@
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_6">
+       <layout class="QVBoxLayout" name="verticalLayout_11">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Confirmed Reward</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="ColorIndicatorLabel" name="confirmed">
+            <property name="font">
+             <font>
+              <family>Monospace</family>
+              <pointsize>16</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>0.00000000</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
@@ -122,11 +148,64 @@
          </layout>
         </item>
         <item>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Unconfirmed Blocks</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="ColorIndicatorLabel" name="unconfirmed_blocks">
+            <property name="font">
+             <font>
+              <family>Monospace</family>
+              <pointsize>16</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>0</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_12">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Next Reward</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="ColorIndicatorLabel" name="next_reward">
+            <property name="font">
+             <font>
+              <family>Monospace</family>
+              <pointsize>16</pointsize>
+              <italic>true</italic>
+             </font>
+            </property>
+            <property name="text">
+             <string>0.00000000</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <widget class="QLabel" name="label_5">
             <property name="text">
-             <string>Total Potential Reward</string>
+             <string>Total Reward</string>
             </property>
            </widget>
           </item>
@@ -146,11 +225,11 @@
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_7">
+         <layout class="QVBoxLayout" name="verticalLayout_9">
           <item>
-           <widget class="QLabel" name="label_6">
+           <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>Block Confirmations Remaining</string>
+             <string>Block Confirmations</string>
             </property>
            </widget>
           </item>
@@ -292,7 +371,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>497</width>
+     <width>515</width>
      <height>20</height>
     </rect>
    </property>

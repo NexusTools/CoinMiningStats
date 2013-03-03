@@ -8,6 +8,7 @@ Graph::Graph(QWidget *parent) :
     setMinimumSize(400, 300);
     setAttribute(Qt::WA_DeleteOnClose);
     setWindowTitle("Graph");
+
     green.setWidth(1);
     green.setColor(QColor(0,250,0,100));
     blackpen.setWidth(1);
