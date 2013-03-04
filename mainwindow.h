@@ -34,6 +34,7 @@ public slots:
 signals:
     void receivedPoolStatsData(QVariantMap data);
     void receivedAccountData(QVariantMap data);
+    void invertChanged(bool);
 
 private:
     QString apiKey;

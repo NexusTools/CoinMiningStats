@@ -82,11 +82,7 @@ void MainWindow::toggleWidget(bool checked)
         setGeometry(oldGeometry);
     }
 
-    confirmed->setInverted(checked);
-    unconfirmed->setInverted(checked);
-    estimated->setInverted(checked);
-    potential->setInverted(checked);
-    workers_rate->setInverted(checked);
+    emit invertChanged(checked);
     //confirmations_left->setInverted();
 
     QTimer::singleShot(50, this, SLOT(show()));

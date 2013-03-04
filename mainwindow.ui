@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>515</width>
-    <height>433</height>
+    <width>501</width>
+    <height>418</height>
    </rect>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -371,11 +371,97 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>515</width>
+     <width>501</width>
      <height>20</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuBitMinerStats">
+    <property name="title">
+     <string>BitMinerStats</string>
+    </property>
+    <addaction name="actionExport_Statistics"/>
+    <addaction name="actionRestore_Database"/>
+    <addaction name="separator"/>
+    <addaction name="actionSettings"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>About</string>
+    </property>
+    <addaction name="actionNexusTools"/>
+    <addaction name="separator"/>
+    <addaction name="actionCredits"/>
+    <addaction name="actionDonate"/>
+    <addaction name="actionQt"/>
+   </widget>
+   <addaction name="menuBitMinerStats"/>
+   <addaction name="menuAbout"/>
   </widget>
+  <action name="actionExport_Statistics">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Backup Statistics</string>
+   </property>
+  </action>
+  <action name="actionRestore_Database">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Restore Database</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::PreferencesRole</enum>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::QuitRole</enum>
+   </property>
+  </action>
+  <action name="actionNexusTools">
+   <property name="text">
+    <string>NexusTools</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
+   </property>
+  </action>
+  <action name="actionCredits">
+   <property name="text">
+    <string>Credits</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutRole</enum>
+   </property>
+  </action>
+  <action name="actionDonate">
+   <property name="text">
+    <string>Donate</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::ApplicationSpecificRole</enum>
+   </property>
+  </action>
+  <action name="actionQt">
+   <property name="text">
+    <string>Qt</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutQtRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

@@ -6,6 +6,9 @@
 ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
     QLabel(parent)
 {
+    if(parent->window())
+        connect(parent->window(), SIGNAL(invertChanged(bool)), this, SLOT(setInverted(bool)));
+
     m = Other;
     dv = 0;
     v = 0;

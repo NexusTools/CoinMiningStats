@@ -14,9 +14,7 @@ public:
         HashRate
     };
 
-    explicit ColorIndicatorLabel(QWidget *parent = 0);
-    void setInverted(bool i);
-    void setValue(qreal r);
+    explicit ColorIndicatorLabel(QWidget *parent);
 
     inline qreal value() const{return v;}
     inline void setUpColor(Qt::GlobalColor c){upColor = c;}
@@ -27,6 +25,8 @@ public:
 
 public slots:
     void updateColor();
+    void setInverted(bool i);
+    void setValue(qreal r);
 
 private:
     Qt::GlobalColor upColor, downColor;
