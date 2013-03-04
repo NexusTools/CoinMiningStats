@@ -379,6 +379,7 @@
     <property name="title">
      <string>BitMinerStats</string>
     </property>
+    <addaction name="actionSet_API_Token"/>
     <addaction name="actionExport_Statistics"/>
     <addaction name="actionRestore_Database"/>
     <addaction name="separator"/>
@@ -460,6 +461,11 @@
    </property>
    <property name="menuRole">
     <enum>QAction::AboutQtRole</enum>
+   </property>
+  </action>
+  <action name="actionSet_API_Token">
+   <property name="text">
+    <string>Set API Token</string>
    </property>
   </action>
  </widget>

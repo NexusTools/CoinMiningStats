@@ -22,10 +22,6 @@ MainWindow::MainWindow(QWidget *parent) :
     updateAccountDataTimer.setInterval(15000);
     connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
 
-    updatePoolStatsTimer.setSingleShot(true);
-    updatePoolStatsTimer.setInterval(60000 * 10);
-    connect(&updatePoolStatsTimer, SIGNAL(timeout()), this, SLOT(requestPoolStatsUpdate()));
-
     updateBlockInfoTimer.setSingleShot(true);
     updateBlockInfoTimer.setInterval(60000 * 4);
     connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
@@ -119,6 +115,7 @@ void MainWindow::requestAccountDataUpdate()
 
 void MainWindow::requestBlockInfoUpdate()
 {
+    updateBlockInfoTimer.stop();
     qDebug() << "Requesting Pool Statistics Update";
     if(!blockInfoRequest)
         blockInfoRequest->deleteLater();
@@ -225,7 +222,6 @@ void MainWindow::accountDataReply()
 
 void MainWindow::poolStatsReply()
 {
-    updatePoolStatsTimer.start();
     poolStatsRequest->deleteLater();
     if(poolStatsRequest->error()) {
         qWarning() << "Pool Statistics Request Failed" << poolStatsRequest->errorString();
@@ -295,8 +291,13 @@ void MainWindow::blockInfoReply()
         qreal reward = 0;
         emit receivedBlockInfoData(map);
 
-        if(map.contains("height"))
-            blockchain_height->setValue(map.value("height").toULongLong());
+        if(map.contains("height")) {
+            uint height = map.value("height").toUInt();
+            if(height > blockchain_height->value()) {
+                blockchain_height->setValue(height);
+                requestPoolStatsUpdate();
+            }
+        }
     } else {
         qWarning() << "Bad Reply";
     }

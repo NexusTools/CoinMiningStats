@@ -48,7 +48,6 @@ private:
     QNetworkReply* poolStatsRequest;
     QNetworkReply* blockInfoRequest;
     QTimer updateAccountDataTimer;
-    QTimer updatePoolStatsTimer;
     QTimer updateBlockInfoTimer;
 
     QSettings settings;
