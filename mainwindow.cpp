@@ -19,12 +19,16 @@ MainWindow::MainWindow(QWidget *parent) :
     workers_rate->setMode(ColorIndicatorLabel::HashRate);
 
     updateAccountDataTimer.setSingleShot(true);
-    updateAccountDataTimer.setInterval(30000);
+    updateAccountDataTimer.setInterval(15000);
     connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
 
     updatePoolStatsTimer.setSingleShot(true);
     updatePoolStatsTimer.setInterval(60000 * 10);
     connect(&updatePoolStatsTimer, SIGNAL(timeout()), this, SLOT(requestPoolStatsUpdate()));
+
+    updateBlockInfoTimer.setSingleShot(true);
+    updateBlockInfoTimer.setInterval(60000 * 4);
+    connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
 
     accountDataRequest = 0;
     poolStatsRequest = 0;
@@ -53,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     requestAccountDataUpdate();
     requestPoolStatsUpdate();
+    requestBlockInfoUpdate();
 }
 
 void MainWindow::toggleWidget(bool checked)
@@ -110,6 +115,15 @@ void MainWindow::requestAccountDataUpdate()
         accountDataRequest->deleteLater();
     accountDataRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
     connect(accountDataRequest, SIGNAL(finished()), this, SLOT(accountDataReply()));
+}
+
+void MainWindow::requestBlockInfoUpdate()
+{
+    qDebug() << "Requesting Pool Statistics Update";
+    if(!blockInfoRequest)
+        blockInfoRequest->deleteLater();
+    blockInfoRequest = accessMan.get(QNetworkRequest(QUrl("http://blockchain.info/latestblock")));
+    connect(blockInfoRequest, SIGNAL(finished()), this, SLOT(blockInfoReply()));
 }
 
 void MainWindow::requestPoolStatsUpdate()
@@ -257,6 +271,36 @@ void MainWindow::poolStatsReply()
         qWarning() << "Bad Reply";
     }
     poolStatsRequest = 0;
+}
+
+void MainWindow::blockInfoReply()
+{
+    updateBlockInfoTimer.start();
+    blockInfoRequest->deleteLater();
+    if(blockInfoRequest->error()) {
+        qWarning() << "Pool Statistics Request Failed" << poolStatsRequest->errorString();
+
+        blockInfoRequest = 0;
+        return;
+    }
+
+    QVariant data;
+    {
+        QScriptEngine engine;
+        data = engine.evaluate("(" + blockInfoRequest->readAll() + ")").toVariant();
+    }
+
+    QVariantMap map = data.toMap();
+    if(!map.isEmpty()) {
+        qreal reward = 0;
+        emit receivedBlockInfoData(map);
+
+        if(map.contains("height"))
+            blockchain_height->setValue(map.value("height").toULongLong());
+    } else {
+        qWarning() << "Bad Reply";
+    }
+    blockInfoRequest = 0;
 }
 
 void MainWindow::changeEvent(QEvent *e)
