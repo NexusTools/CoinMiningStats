@@ -3,8 +3,8 @@
 #include <QDebug>
 
 QList<QByteArray> errorList;
-const QRegExp validString("^[\d\w\-_!@#\$%\^&\*\(\)\.]+$", Qt::CaseInsensitive, QRegExp::RegExp);
-const QRegExp validNumber("^\d+(\.\d+)?$", Qt::CaseInsensitive, QRegExp::RegExp2);
+const QRegExp validString("^[\\d\\w\\-_!@#\\$%\\^&\\*\\(\\)\\.]+$", Qt::CaseInsensitive, QRegExp::RegExp);
+const QRegExp validNumber("^\\d+(\\.\\d+)?$", Qt::CaseInsensitive, QRegExp::RegExp2);
 
 QVariant _parse(QIODevice* device, bool startup=true)
 {
@@ -18,12 +18,15 @@ QVariant _parse(QIODevice* device, bool startup=true)
             data = QByteArray("Parse Error: ") + error;
         } catch(QByteArray error) {
             errorList << error;
-            data = QByteArray("Parse Error: ") + error;
+            data = QByteArray("Parse Error: Unexpected ") + error;
         }
         if(errorList.size())
             qDebug() << errorList;
         return data;
     }
+
+    if(device->atEnd())
+        throw "End of Stream";
 
     bool quoted = false;
     char dat;
@@ -45,16 +48,14 @@ QVariant _parse(QIODevice* device, bool startup=true)
                 breakLoop = true;
                 break;
             }
+            qDebug() << "Entering Array";
             QVariantList list;
-            try {
-                while(true)
+            while(true)
+                try {
                     list.append(_parse(device, false));
-            } catch(const char*) {
-                // Skip These
-            } catch(QByteArray error) {
-                errorList << error;
-            }
+                } catch(QByteArray) {} // Skip
 
+            qDebug() << "Leaving Array" << list;
             return list;
         }
             break;
@@ -66,25 +67,41 @@ QVariant _parse(QIODevice* device, bool startup=true)
                 breakLoop = true;
                 break;
             }
+            qDebug() << "Entering Map";
             QVariantMap map;
             try {
                 while(true) {
-                    QString key = _parse(device, false).toString();
-                    map.insert(key, _parse(device, false));
-                }
-            } catch(const char*) {
-                // Skip These
-            } catch(QByteArray error) {
-                errorList << error;
-            }
+                    try {
+                        QString key = _parse(device, false).toString();
+                        QVariant val;
+                        try {
+                            val = _parse(device, false);
+                        } catch(QByteArray error) {
+                            val = error;
+                        } catch(const char* error) {
+                            map.insert(key, QByteArray("Unexpected ") + error);
+                            throw error;
+                        } catch(...) {
+                            val = QByteArray("Error");
+                        }
 
+                        map.insert(key, val);
+                    } catch(QByteArray) {}
+                }
+            } catch(const char* error) {}
+            qDebug() << "Leaving Map" << map;
             return map;
         }
             break;
 
         case '}':
         case ']':
-            throw "Unexpected End Bracket";
+            if(!varDat.isEmpty()) {
+                device->seek(device->pos()-1);
+                breakLoop = true;
+                break;
+            }
+            throw "End of Loop";
 
         case ',':
         case '=':
@@ -106,8 +123,6 @@ QVariant _parse(QIODevice* device, bool startup=true)
                 if(nDat == '\\') { //TODO: Better Escape Parsing
                     if(device->read(&nDat, 1))
                         varDat.append(nDat);
-                    else
-                        throw QByteArray("Unexpected End of Stream during Escaped Character");
 
                     continue;
                 } else
@@ -126,15 +141,12 @@ QVariant _parse(QIODevice* device, bool startup=true)
     }
 
     if(varDat.isEmpty())
-        throw (QByteArray("Unexpected ") + dat + ". Expected value, array or map.");
+        return QVariant();
 
-
-    //if(validNumber.exactMatch(varDat)) {
-        bool ok;
-        double number = varDat.toDouble(&ok);
-        if(ok)
-            return QVariant(number);
-    //}
+    bool ok;
+    double number = varDat.toDouble(&ok);
+    if(ok)
+        return QVariant(number);
 
     if(validString.exactMatch(varDat)) {
         if(!quoted) {
@@ -150,13 +162,17 @@ QVariant _parse(QIODevice* device, bool startup=true)
     return QVariant(varDat);
 }
 
+QVariant LooseJSON::parse(QIODevice *io)
+{
+    return _parse(io);
+}
+
 QVariant LooseJSON::parse(QByteArray data)
 {
-
     QBuffer buffer;
     buffer.setBuffer(&data);
     buffer.open(QIODevice::ReadOnly);
-    QVariant retData = _parse(&buffer);
-    //();
-    return retData;
+    QVariant dat = _parse(&buffer);
+    qDebug() << dat;
+    return dat;
 }

@@ -1,6 +1,7 @@
 #ifndef LOOSEJSON_H
 #define LOOSEJSON_H
 
+#include <QIODevice>
 #include <QVariant>
 #include <QRegExp>
 
@@ -12,6 +13,7 @@ public:
         VeryStrict
     };
 
+    static QVariant parse(QIODevice* iodevice);
     static QVariant parse(QByteArray data); // Parse UTF8 JSON String
     static QByteArray encode(QVariant data, EncodeStrictness =VeryLoose);
 
