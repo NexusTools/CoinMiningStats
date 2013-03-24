@@ -11,10 +11,12 @@
 #include <QThread>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    DBusNotificationInterface("org.freedesktop.Notifications",
+    QMainWindow(parent)
+#ifdef DBUS_NOTIFICATIONS
+    ,DBusNotificationInterface("org.freedesktop.Notifications",
                               "/org/freedesktop/Notifications",
                               "org.freedesktop.Notifications")
+#endif
 {
     qApp->setQuitOnLastWindowClosed(false);
     setupUi(this);
@@ -324,22 +326,26 @@ void MainWindow::showMessage(QString title, QString message)
 {
     qWarning() << "Showing Notification" << title << message;
 #ifdef DBUS_NOTIFICATIONS
-    QList<QVariant> argumentList;
-    argumentList << qApp->applicationName(); //app_name
-    argumentList << (uint)0;  // replace_id
-    argumentList << "";  // app_icon
-    argumentList << title; // summary
-    argumentList << message; // body
-    argumentList << QStringList();  // actions
-    argumentList << QVariantMap();  // hints
-    argumentList << (int)2500; // timeout in ms
-    QDBusMessage reply = DBusNotificationInterface.callWithArgumentList(QDBus::AutoDetect, "Notify", argumentList);
-    if(reply.type() != QDBusMessage::ErrorMessage)
-        return;
+    if(DBusNotificationInterface.isValid()) {
+        qDebug() << "Using DBus Notifications";
+        QList<QVariant> argumentList;
+        argumentList << qApp->applicationName(); //app_name
+        argumentList << (uint)0;  // replace_id
+        argumentList << "";  // app_icon
+        argumentList << title; // summary
+        argumentList << message; // body
+        argumentList << QStringList();  // actions
+        argumentList << QVariantMap();  // hints
+        argumentList << (int)2500; // timeout in ms
+        QDBusMessage reply = DBusNotificationInterface.callWithArgumentList(QDBus::AutoDetect, "Notify", argumentList);
+        if(reply.type() != QDBusMessage::ErrorMessage)
+            return;
+    }
 #endif
-    if(QSystemTrayIcon::supportsMessages())
+    if(QSystemTrayIcon::supportsMessages()) {
+        qDebug() << "Using Tray Icon Notifications";
         trayIcon->showMessage(title, message);
-    else
+    } else
         qWarning() << "No Qt Notification Fallback";
 }
 
