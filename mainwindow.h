@@ -19,6 +19,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0);
+    virtual ~MainWindow();
     
 protected:
     void changeEvent(QEvent *e);
@@ -51,6 +52,9 @@ public slots:
     void updateSelectedMiner(QAction* =0);
     void minerExited(int code, QProcess::ExitStatus);
     void minerStateChanged(QProcess::ProcessState);
+
+    void passStdOut();
+    void passStdErr();
 
     void stopMiner();
     void toggleMiner();

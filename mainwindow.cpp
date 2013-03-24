@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QResource>
 #include <QDebug>
+#include <QThread>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -62,6 +63,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&killMiner, SIGNAL(timeout()), miner, SLOT(kill()));
     connect(miner, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(minerExited(int,QProcess::ExitStatus)));
     connect(miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
+    connect(miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
+    connect(miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
 
     workers->resizeColumnsToContents();
     dragPoint = QPoint(-1, -1);
@@ -110,6 +113,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(qApp->arguments().contains("-r"))
         QTimer::singleShot(100, this, SLOT(toggleMiner()));
+}
+
+MainWindow::~MainWindow()
+{
+    if(miner->state() != QProcess::NotRunning) {
+        miner->terminate();
+        miner->waitForFinished(1500);
+        if(miner->state() != QProcess::NotRunning)
+            miner->kill();
+    }
 }
 
 
@@ -295,6 +308,14 @@ void MainWindow::minerExited(int code, QProcess::ExitStatus){
     //updateSelectedMiner(minerGroup->checkedAction());
 }
 
+void MainWindow::passStdOut(){
+    qDebug() << miner->readAllStandardOutput().data();
+}
+
+void MainWindow::passStdErr(){
+    qDebug() << miner->readAllStandardError().data();
+}
+
 void MainWindow::minerStateChanged(QProcess::ProcessState state)
 {
     qDebug() << "Miner State Changed" << state;
@@ -334,10 +355,11 @@ void MainWindow::startMiner(QString name){
         stopMiner();
         return;
     }
-    qDebug() << "Starting Miner" << name;
 
+    qDebug() << "Starting Miner" << name;
     QVariantMap minerEntry = settings.value("miners").toMap().value(name).toMap();
     qDebug() << minerEntry;
+
     miner->start(minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
     actionMinerControl->setEnabled(false);
     actionMinerControl->setText(QString("Stop `%1`").arg(name));
