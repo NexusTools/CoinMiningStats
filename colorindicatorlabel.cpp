@@ -34,8 +34,6 @@ void ColorIndicatorLabel::paintEvent(QPaintEvent *)
 }
 
 void ColorIndicatorLabel::updateColor(){
-    qDebug() << "Updating Color" << inverted;
-
     if(inverted && (r < 1 || g < 1 || b < 1)) {
         r += ((1.0 - r) + 0.014) / 14;
         g += ((1.0 - g) + 0.014) / 14;
@@ -80,7 +78,6 @@ void ColorIndicatorLabel::setValue(qreal v){
     if(v == this->v)
         return;
 
-    qDebug() << this->value() << v;
     QColor n;
     if(this->v == -1 || v == -1)
         n = inverted ? Qt::white : Qt::black;

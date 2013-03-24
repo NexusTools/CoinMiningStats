@@ -3,11 +3,14 @@
 
 #include "ui_mainwindow.h"
 
+#include <QSystemTrayIcon>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QSettings>
+#include <QProcess>
 #include <QTimer>
 
+class ManageMiners;
 class Graph;
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
@@ -19,6 +22,13 @@ public:
     
 protected:
     void changeEvent(QEvent *e);
+    void focusInEvent(QFocusEvent *);
+    void focusOutEvent(QFocusEvent *);
+    void closeEvent(QCloseEvent *);
+    void keyPressEvent(QKeyEvent *);
+    void mouseMoveEvent(QMouseEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
 
 public slots:
     void requestBlockInfoUpdate();
@@ -29,9 +39,25 @@ public slots:
     void poolStatsReply();
     void blockInfoReply();
 
+    void minersUpdated(QVariantMap, bool store=true);
     void graphDestroyed();
-    void toggleWidget(bool);
+    void minerManagementDestroyed();
+    void toggleWidget();
+    void setWidget(bool);
     void showGraph();
+    void showMinerManagement();
+    void toggleVisible();
+    void changeApiToken();
+    void updateSelectedMiner(QAction* =0);
+    void minerExited(int code, QProcess::ExitStatus);
+    void minerStateChanged(QProcess::ProcessState);
+
+    void stopMiner();
+    void toggleMiner();
+    void startMiner(QString name);
+
+private slots:
+    void finishTransform();
 
 signals:
     void receivedPoolStatsData(QVariantMap data);
@@ -42,7 +68,12 @@ signals:
 private:
     QString apiKey;
 
-
+    QTimer killMiner;
+    QProcess* miner;
+    QActionGroup* minerGroup;
+    QAction* windowVisibilityAction;
+    QAction* trayHashRate;
+    QSystemTrayIcon* trayIcon;
     QNetworkAccessManager accessMan;
     QNetworkReply* accountDataRequest;
     QNetworkReply* poolStatsRequest;
@@ -50,7 +81,11 @@ private:
     QTimer updateAccountDataTimer;
     QTimer updateBlockInfoTimer;
 
+    QPoint dragPoint;
     QSettings settings;
+    bool widgetMode;
+
+    ManageMiners* miners;
     Graph* graph;
 };
 

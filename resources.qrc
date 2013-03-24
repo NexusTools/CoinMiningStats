@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>widget.css</file>
+        <file>bitcoin.png</file>
     </qresource>
 </RCC>

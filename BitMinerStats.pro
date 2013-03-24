@@ -32,3 +32,12 @@ HEADERS += \
 
 SOURCES += \
     colorindicatorlabel.cpp
+
+HEADERS += \
+    manageminers.h
+
+SOURCES += \
+    manageminers.cpp
+
+FORMS += \
+    manageminers.ui
