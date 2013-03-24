@@ -11,7 +11,10 @@
 #include <QThread>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent)
+    QMainWindow(parent),
+    DBusNotificationInterface("org.freedesktop.Notifications",
+                              "/org/freedesktop/Notifications",
+                              "org.freedesktop.Notifications")
 {
     qApp->setQuitOnLastWindowClosed(false);
     setupUi(this);
@@ -104,6 +107,7 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(action, SIGNAL(triggered()), qApp, SLOT(quit()));
         menu->addAction(action);
 
+        trayIcon->setToolTip("No Miner Running");
         trayIcon->setContextMenu(menu);
         trayIcon->show();
 
@@ -316,6 +320,29 @@ void MainWindow::passStdErr(){
     qDebug() << miner->readAllStandardError().data();
 }
 
+void MainWindow::showMessage(QString title, QString message)
+{
+    qWarning() << "Showing Notification" << title << message;
+#ifdef DBUS_NOTIFICATIONS
+    QList<QVariant> argumentList;
+    argumentList << qApp->applicationName(); //app_name
+    argumentList << (uint)0;  // replace_id
+    argumentList << "";  // app_icon
+    argumentList << title; // summary
+    argumentList << message; // body
+    argumentList << QStringList();  // actions
+    argumentList << QVariantMap();  // hints
+    argumentList << (int)2500; // timeout in ms
+    QDBusMessage reply = DBusNotificationInterface.callWithArgumentList(QDBus::AutoDetect, "Notify", argumentList);
+    if(reply.type() != QDBusMessage::ErrorMessage)
+        return;
+#endif
+    if(QSystemTrayIcon::supportsMessages())
+        trayIcon->showMessage(title, message);
+    else
+        qWarning() << "No Qt Notification Fallback";
+}
+
 void MainWindow::minerStateChanged(QProcess::ProcessState state)
 {
     qDebug() << "Miner State Changed" << state;
@@ -323,10 +350,14 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
     case QProcess::NotRunning:
         killMiner.stop();
         updateSelectedMiner(minerGroup->checkedAction());
+        showMessage("Miner Stopped", "The mining software has stopped running.");
+        trayIcon->setToolTip("Miner Stopped");
         break;
 
     case QProcess::Running:
         actionMinerControl->setEnabled(true);
+        showMessage("Miner Running", "The mining software is now running.");
+        trayIcon->setToolTip("Miner Running");
         break;
     }
 }
@@ -575,7 +606,6 @@ void MainWindow::blockInfoReply()
 
     QVariantMap map = data.toMap();
     if(!map.isEmpty()) {
-        qreal reward = 0;
         emit receivedBlockInfoData(map);
 
         if(map.contains("height")) {

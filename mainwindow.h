@@ -3,6 +3,10 @@
 
 #include "ui_mainwindow.h"
 
+#ifdef DBUS_NOTIFICATIONS
+#include <QDBusInterface>
+#endif
+
 #include <QSystemTrayIcon>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -62,6 +66,7 @@ public slots:
 
 private slots:
     void finishTransform();
+    void showMessage(QString title, QString message);
 
 signals:
     void receivedPoolStatsData(QVariantMap data);
@@ -91,6 +96,10 @@ private:
 
     ManageMiners* miners;
     Graph* graph;
+
+#ifdef DBUS_NOTIFICATIONS
+    QDBusInterface DBusNotificationInterface;
+#endif
 };
 
 #endif // MAINWINDOW_H

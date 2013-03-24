@@ -11,6 +11,10 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BitMinerStats
 TEMPLATE = app
 
+linux-g++ {
+    QT += dbus
+    DEFINES += DBUS_NOTIFICATIONS
+}
 
 SOURCES += main.cpp\
         mainwindow.cpp \
