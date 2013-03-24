@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(graphBtn, SIGNAL(clicked()), this, SLOT(showGraph()));
     connect(tglWidget, SIGNAL(clicked()), this, SLOT(toggleWidget()));
     connect(actionManage_Miners, SIGNAL(triggered()), this, SLOT(showMinerManagement()));
-    connect(minerGroup, SIGNAL(selected(QAction*)), this, SLOT(updateSelectedMiner(QAction*)));
+    connect(minerGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateSelectedMiner(QAction*)));
     connect(actionSet_API_Token, SIGNAL(triggered()), this, SLOT(changeApiToken()));
     connect(actionMinerControl, SIGNAL(triggered()), this, SLOT(toggleMiner()));
     connect(&killMiner, SIGNAL(timeout()), miner, SLOT(kill()));
