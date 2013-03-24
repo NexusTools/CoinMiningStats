@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui script network
+QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -45,3 +45,9 @@ SOURCES += \
 
 FORMS += \
     manageminers.ui
+
+HEADERS += \
+    loosejson.h
+
+SOURCES += \
+    loosejson.cpp

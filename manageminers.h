@@ -11,6 +11,12 @@ public:
     explicit ManageMiners(QWidget *parent = 0);
     void setMinerData(QVariant);
 
+    QVariant _json(QIODevice*);
+    QVariant _jsonMap(QIODevice*);
+    QVariant _jsonArray(QIODevice*);
+
+    QVariant parseJSON(QByteArray data);
+
 public slots:
     void addMinerEntry();
     void removeMinerEntry();

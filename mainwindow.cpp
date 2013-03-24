@@ -1,8 +1,8 @@
 #include "mainwindow.h"
 #include "manageminers.h"
 #include "graph.h"
+#include "loosejson.h"
 
-#include <QScriptEngine>
 #include <QInputDialog>
 #include <QMouseEvent>
 #include <QKeyEvent>
@@ -474,8 +474,7 @@ void MainWindow::accountDataReply()
     qreal totalRate = 0;
     QVariant data;
     {
-        QScriptEngine engine;
-        data = engine.evaluate("(" + accountDataRequest->readAll() + ")").toVariant();
+        data = LooseJSON::parse(accountDataRequest->readAll());
     }
 
     QVariantMap map = data.toMap();
@@ -556,8 +555,7 @@ void MainWindow::poolStatsReply()
 
     QVariant data;
     {
-        QScriptEngine engine;
-        data = engine.evaluate("(" + poolStatsRequest->readAll() + ")").toVariant();
+        data = LooseJSON::parse("(" + poolStatsRequest->readAll() + ")");
     }
 
     QVariantMap map = data.toMap();
@@ -604,11 +602,7 @@ void MainWindow::blockInfoReply()
         return;
     }
 
-    QVariant data;
-    {
-        QScriptEngine engine;
-        data = engine.evaluate("(" + blockInfoRequest->readAll() + ")").toVariant();
-    }
+    QVariant data = LooseJSON::parse("(" + blockInfoRequest->readAll() + ")");
 
     QVariantMap map = data.toMap();
     if(!map.isEmpty()) {
