@@ -3,6 +3,7 @@
 #include "graph.h"
 #include "loosejson.h"
 
+#include <stdlib.h>
 #include <QCursor>
 #include <QInputDialog>
 #include <QMouseEvent>
@@ -12,6 +13,20 @@
 #include <QThread>
 
 #define IDLE_SECONDS 60
+
+QProcess MainWindow::miner;
+
+void MainWindow::shutdown(){
+    if(miner.state() != QProcess::NotRunning) {
+        miner.terminate();
+        qDebug() << "Waiting for Miner to Exit...";
+        miner.waitForFinished(1500);
+        if(miner.state() != QProcess::NotRunning)
+            miner.kill();
+    }
+    qDebug() << "Exiting...";
+    _Exit(0);
+}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -41,7 +56,6 @@ MainWindow::MainWindow(QWidget *parent) :
     updateBlockInfoTimer.setInterval(60000 * 4);
     connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
 
-    miner = new QProcess(this);
     accountDataRequest = 0;
     poolStatsRequest = 0;
     widgetMode = false;
@@ -70,11 +84,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(minerGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateSelectedMiner(QAction*)));
     connect(actionSet_API_Token, SIGNAL(triggered()), this, SLOT(changeApiToken()));
     connect(actionMinerControl, SIGNAL(triggered()), this, SLOT(toggleMiner()));
-    connect(&killMiner, SIGNAL(timeout()), miner, SLOT(kill()));
-    connect(miner, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(minerExited(int,QProcess::ExitStatus)));
-    connect(miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
-    connect(miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
-    connect(miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
+    connect(&killMiner, SIGNAL(timeout()), &miner, SLOT(kill()));
+    connect(&miner, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(minerExited(int,QProcess::ExitStatus)));
+    connect(&miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
+    connect(&miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
+    connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
 
     workers->resizeColumnsToContents();
     dragPoint = QPoint(-1, -1);
@@ -127,17 +141,6 @@ MainWindow::MainWindow(QWidget *parent) :
     if(qApp->arguments().contains("-a"))
         actionIdleControl->setChecked(true);
 }
-
-MainWindow::~MainWindow()
-{
-    if(miner->state() != QProcess::NotRunning) {
-        miner->terminate();
-        miner->waitForFinished(1500);
-        if(miner->state() != QProcess::NotRunning)
-            miner->kill();
-    }
-}
-
 
 void MainWindow::focusInEvent(QFocusEvent *)
 {
@@ -311,7 +314,7 @@ void MainWindow::updateSelectedMiner(QAction* action)
 {
     QString minerText = action ? action->text() : "";
     settings.setValue("miner", minerText);
-    if(miner->state() == QProcess::NotRunning) {
+    if(miner.state() == QProcess::NotRunning) {
         actionMinerControl->setEnabled(!isMinerBusy() && !actionIdleControl->isChecked());
         actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
     }
@@ -333,7 +336,7 @@ void MainWindow::checkIdle()
         stopMiner();
     } else if(lastMouseMove.elapsed() > IDLE_SECONDS * 1000) {
         lastMouseMove.start();
-        if(miner->state() == QProcess::NotRunning)
+        if(miner.state() == QProcess::NotRunning)
             startMiner();
     }
 }
@@ -354,11 +357,11 @@ void MainWindow::minerExited(int code, QProcess::ExitStatus){
 }
 
 void MainWindow::passStdOut(){
-    qDebug() << miner->readAllStandardOutput().data();
+    qDebug() << miner.readAllStandardOutput().data();
 }
 
 void MainWindow::passStdErr(){
-    qDebug() << miner->readAllStandardError().data();
+    qDebug() << miner.readAllStandardError().data();
 }
 
 void MainWindow::showMessage(QString title, QString message)
@@ -410,17 +413,17 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
 }
 
 void MainWindow::stopMiner(){
-    if(miner->state() != QProcess::Running || killMiner.isActive())
+    if(miner.state() != QProcess::Running || killMiner.isActive())
         return;
     qDebug() << "Stopping Miner";
     showMessage("Stopping Miner", "The mining software is being stopped.");
-    miner->terminate();
+    miner.terminate();
     killMiner.start();
     actionMinerControl->setEnabled(false);
 }
 
 void MainWindow::toggleMiner(){
-    switch(miner->state()){
+    switch(miner.state()){
     case QProcess::Running:
         stopMiner();
         break;
@@ -432,7 +435,7 @@ void MainWindow::toggleMiner(){
 }
 
 void MainWindow::startMiner(QString name){
-    if(miner->state() != QProcess::NotRunning) {
+    if(miner.state() != QProcess::NotRunning) {
         stopMiner();
         return;
     }
@@ -454,7 +457,7 @@ void MainWindow::startMiner(QString name){
 
     actionMinerControl->setEnabled(false);
     actionMinerControl->setText(QString("Stop `%1`").arg(name));
-    miner->start(minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
+    miner.start(minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
 }
 
 void MainWindow::showMinerManagement(){

@@ -24,7 +24,8 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     
 public:
     explicit MainWindow(QWidget *parent = 0);
-    virtual ~MainWindow();
+
+    static void shutdown();
     
 protected:
     void changeEvent(QEvent *e);
@@ -85,7 +86,7 @@ private:
     QPoint lastMousePos;
     QTimer idleWatcher;
     QTimer killMiner;
-    QProcess* miner;
+    static QProcess miner;
     QActionGroup* minerGroup;
     QAction* windowVisibilityAction;
     QAction* trayHashRate;

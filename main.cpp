@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     a.setApplicationName("BitMinerStats");
 
     MainWindow w;
+    atexit(MainWindow::shutdown);
     if(a.arguments().contains("-m"))
         w.showMinimized();
     else
