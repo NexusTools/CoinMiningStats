@@ -234,18 +234,6 @@ void MainWindow::setWidget(bool checked)
     advanced->setVisible(!widgetMode);
     fileMenu->setVisible(!widgetMode);
 
-    if (widgetMode)
-    {
-        QResource styleRes(":/widget.css");
-        setStyleSheet(QString((const char*)styleRes.data()));
-        setWindowOpacity(0.7);
-    }
-    else
-    {
-        setStyleSheet("");
-        setWindowOpacity(1);
-    }
-
     emit invertChanged(widgetMode);
     QTimer::singleShot(0, this, SLOT(hide()));
     QTimer::singleShot(50, this, SLOT(finishTransform()));
@@ -257,13 +245,18 @@ void MainWindow::finishTransform(){
     if (widgetMode)
     {
         oldFlags = windowFlags();
+        QResource styleRes(":/widget.css");
+        setStyleSheet(QString((const char*)styleRes.data()));
         oldGeometry = geometry();
-        setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+        setWindowOpacity(0.7);
+        setWindowFlags(Qt::SplashScreen | Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
         resize(minimumSize());
         move(oldGeometry.topLeft());
     }
     else
     {
+        setStyleSheet("");
+        setWindowOpacity(1);
         setWindowFlags(oldFlags);
         setGeometry(oldGeometry);
     }
