@@ -3,12 +3,15 @@
 #include "graph.h"
 #include "loosejson.h"
 
+#include <QCursor>
 #include <QInputDialog>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QResource>
 #include <QDebug>
 #include <QThread>
+
+#define IDLE_SECONDS 60
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -44,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
     widgetMode = false;
 
     killMiner.setInterval(1500);
-    killMiner.setSingleShot(true);
+    idleWatcher.setInterval(50);
 
     apiKey = settings.value("slush_api").toString();
     minersUpdated(settings.value("miners").toMap(), false);
@@ -58,6 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     requestBlockInfoUpdate();
     qDebug() << "Using API Key" << apiKey;
+    connect(&idleWatcher, SIGNAL(timeout()), this, SLOT(checkIdle()));
+    connect(actionIdleControl, SIGNAL(triggered()), this, SLOT(idleControlUpdated()));
     connect(actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(graphBtn, SIGNAL(clicked()), this, SLOT(showGraph()));
     connect(tglWidget, SIGNAL(clicked()), this, SLOT(toggleWidget()));
@@ -119,6 +124,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(qApp->arguments().contains("-r"))
         QTimer::singleShot(100, this, SLOT(toggleMiner()));
+    if(qApp->arguments().contains("-a"))
+        actionIdleControl->setChecked(true);
 }
 
 MainWindow::~MainWindow()
@@ -305,8 +312,40 @@ void MainWindow::updateSelectedMiner(QAction* action)
     QString minerText = action ? action->text() : "";
     settings.setValue("miner", minerText);
     if(miner->state() == QProcess::NotRunning) {
-        actionMinerControl->setEnabled(action);
+        actionMinerControl->setEnabled(!isMinerBusy() && !actionIdleControl->isChecked());
         actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
+    }
+
+    actionIdleControl->setEnabled(action);
+}
+
+bool MainWindow::isMinerBusy()
+{
+    return !QProcess::Starting && !killMiner.isActive();
+}
+
+void MainWindow::checkIdle()
+{
+    QPoint mPos = QCursor::pos();
+    if(mPos != lastMousePos) {
+        lastMouseMove.start();
+        lastMousePos = mPos;
+        stopMiner();
+    } else if(lastMouseMove.elapsed() > IDLE_SECONDS * 1000) {
+        lastMouseMove.start();
+        if(miner->state() == QProcess::NotRunning)
+            startMiner();
+    }
+}
+
+void MainWindow::idleControlUpdated()
+{
+    if(actionIdleControl->isChecked()) {
+        idleWatcher.start();
+        actionMinerControl->setEnabled(false);
+    } else {
+        idleWatcher.stop();
+        actionMinerControl->setEnabled(!isMinerBusy());
     }
 }
 
@@ -354,14 +393,16 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
     qDebug() << "Miner State Changed" << state;
     switch(state) {
     case QProcess::NotRunning:
-        killMiner.stop();
+        if(killMiner.isActive()) {
+            showMessage("Miner Stopped", "The mining software has stopped running.");
+            killMiner.stop();
+        }
         updateSelectedMiner(minerGroup->checkedAction());
-        showMessage("Miner Stopped", "The mining software has stopped running.");
         trayIcon->setToolTip("Miner Stopped");
         break;
 
     case QProcess::Running:
-        actionMinerControl->setEnabled(true);
+        actionMinerControl->setEnabled(!actionIdleControl->isChecked());
         showMessage("Miner Running", "The mining software is now running.");
         trayIcon->setToolTip("Miner Running");
         break;
@@ -369,7 +410,10 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
 }
 
 void MainWindow::stopMiner(){
+    if(miner->state() != QProcess::Running || killMiner.isActive())
+        return;
     qDebug() << "Stopping Miner";
+    showMessage("Stopping Miner", "The mining software is being stopped.");
     miner->terminate();
     killMiner.start();
     actionMinerControl->setEnabled(false);
@@ -382,7 +426,7 @@ void MainWindow::toggleMiner(){
         break;
 
     case QProcess::NotRunning:
-        startMiner(minerGroup->checkedAction()->text());
+        startMiner();
         break;
     }
 }
@@ -393,8 +437,19 @@ void MainWindow::startMiner(QString name){
         return;
     }
 
+    if(name.isEmpty()) {
+        QAction* active = minerGroup->checkedAction();
+        if(!active)
+            return;
+        name = active->text();
+    }
+
     qDebug() << "Starting Miner" << name;
     QVariantMap minerEntry = settings.value("miners").toMap().value(name).toMap();
+    if(minerEntry.isEmpty()) {
+        qWarning() << "Attempted to Start Invalid Miner" << name;
+        return;
+    }
     qDebug() << minerEntry;
 
     actionMinerControl->setEnabled(false);

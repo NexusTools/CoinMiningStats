@@ -13,6 +13,7 @@
 #include <QSettings>
 #include <QProcess>
 #include <QTimer>
+#include <QTime>
 
 class ManageMiners;
 class Graph;
@@ -57,12 +58,15 @@ public slots:
     void minerExited(int code, QProcess::ExitStatus);
     void minerStateChanged(QProcess::ProcessState);
 
+    bool isMinerBusy();
+    void checkIdle();
+    void idleControlUpdated();
     void passStdOut();
     void passStdErr();
 
     void stopMiner();
     void toggleMiner();
-    void startMiner(QString name);
+    void startMiner(QString name =QString());
 
 private slots:
     void finishTransform();
@@ -77,6 +81,9 @@ signals:
 private:
     QString apiKey;
 
+    QTime lastMouseMove;
+    QPoint lastMousePos;
+    QTimer idleWatcher;
     QTimer killMiner;
     QProcess* miner;
     QActionGroup* minerGroup;

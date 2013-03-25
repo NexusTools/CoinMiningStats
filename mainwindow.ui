@@ -416,6 +416,7 @@
      <string>Mining</string>
     </property>
     <addaction name="actionMinerControl"/>
+    <addaction name="actionIdleControl"/>
     <addaction name="actionManage_Miners"/>
     <addaction name="separator"/>
     <addaction name="actionNo_Miners_Configured"/>
@@ -512,6 +513,17 @@
    </property>
    <property name="text">
     <string>Start Miner</string>
+   </property>
+  </action>
+  <action name="actionIdleControl">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Idle Auto-Control</string>
    </property>
   </action>
  </widget>
