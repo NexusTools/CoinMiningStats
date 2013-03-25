@@ -21,7 +21,7 @@ public slots:
     void addMinerEntry();
     void removeMinerEntry();
     void updateMinerPage();
-    void updateArguments();
+    void updateArgumentControls();
     void addArg();
     void removeArg();
     void moveArgUp();

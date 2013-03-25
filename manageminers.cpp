@@ -13,7 +13,7 @@ ManageMiners::ManageMiners(QWidget *parent) :
     connect(addMiner, SIGNAL(clicked()), this, SLOT(addMinerEntry()));
     connect(removeMiner, SIGNAL(clicked()), this, SLOT(removeMinerEntry()));
     connect(minerList, SIGNAL(currentRowChanged(int)), this, SLOT(updateMinerPage()));
-    connect(arguments, SIGNAL(currentRowChanged(int)), this, SLOT(updateArguments()));
+    connect(arguments, SIGNAL(currentRowChanged(int)), this, SLOT(updateArgumentControls()));
     connect(removeArgument, SIGNAL(clicked()), this, SLOT(removeArg()));
     connect(addArgument, SIGNAL(clicked()), this, SLOT(addArg()));
     connect(moveUp, SIGNAL(clicked()), this, SLOT(moveArgUp()));
@@ -26,9 +26,12 @@ ManageMiners::ManageMiners(QWidget *parent) :
 }
 
 void ManageMiners::browseProgram(){
+    blockSignals(true);
     QString file = QFileDialog::getOpenFileName(this, "Select Mining Program", QDir::homePath());
     if(!file.isNull())
         program->setText(file);
+    blockSignals(false);
+    storePage();
 }
 
 void ManageMiners::save(){
@@ -37,6 +40,9 @@ void ManageMiners::save(){
 }
 
 void ManageMiners::storePage() {
+    if(signalsBlocked())
+        return;
+
     QListWidgetItem* item = minerList->currentItem();
     if(item) {
         QMap<QString, QVariant> minerEntry;
@@ -53,6 +59,7 @@ void ManageMiners::storePage() {
 }
 
 void ManageMiners::addArg(){
+    blockSignals(true);
     QInputDialog inputDiag(this);
     inputDiag.setInputMode(QInputDialog::TextInput);
     inputDiag.setLabelText("Launch Argument");
@@ -60,31 +67,38 @@ void ManageMiners::addArg(){
     QString argu = inputDiag.textValue();
     if(!argu.isNull())
         arguments->addItem(argu);
+    blockSignals(false);
     storePage();
 }
 
 void ManageMiners::removeArg(){
+    blockSignals(true);
     arguments->model()->removeRow(arguments->currentRow());
+    blockSignals(false);
     storePage();
 }
 
 void ManageMiners::moveArgUp(){
+    blockSignals(true);
     QListWidgetItem* upItem = arguments->item(arguments->currentRow()-1);
     QString upVal = upItem->text();
     upItem->setText(arguments->currentItem()->text());
     arguments->currentItem()->setText(upVal);
     arguments->setCurrentRow(arguments->currentRow()-1);
-    updateArguments();
+    updateArgumentControls();
+    blockSignals(false);
     storePage();
 }
 
 void ManageMiners::moveArgDown(){
+    blockSignals(true);
     QListWidgetItem* downItem = arguments->item(arguments->currentRow()+1);
     QString upVal = downItem->text();
     downItem->setText(arguments->currentItem()->text());
     arguments->currentItem()->setText(upVal);
     arguments->setCurrentRow(arguments->currentRow()+1);
-    updateArguments();
+    updateArgumentControls();
+    blockSignals(false);
     storePage();
 }
 
@@ -97,7 +111,7 @@ void ManageMiners::setMinerData(QVariant var){
     blockSignals(false);
 }
 
-void ManageMiners::updateArguments(){
+void ManageMiners::updateArgumentControls(){
     moveUp->setEnabled(arguments->currentRow() > 0);
     moveDown->setEnabled(arguments->currentRow() > -1 && arguments->currentRow() < arguments->count()-1);
     removeArgument->setEnabled(arguments->currentRow() > -1);
@@ -105,7 +119,7 @@ void ManageMiners::updateArguments(){
 
 void ManageMiners::updateMinerPage()
 {
-
+    blockSignals(true);
     arguments->clear();
     minerPage->setEnabled(minerList->currentItem());
     removeMiner->setEnabled(minerPage->isEnabled());
@@ -116,22 +130,27 @@ void ManageMiners::updateMinerPage()
         foreach(QString arg, minerEntry.value("arguments").toStringList())
             arguments->addItem(arg);
         qDebug() << minerEntry;
-    } else {
+    } else
         program->setText("");
-    }
+
+    updateArgumentControls();
+    blockSignals(false);
 }
 
 void ManageMiners::removeMinerEntry()
 {
+    blockSignals(true);
     qDebug() << "Removing" << minerList->currentIndex();
     if(minerList->currentItem()) {
         minerData.remove(minerList->currentItem()->text());
         minerList->model()->removeRow(minerList->currentRow());
     }
+    updateMinerPage();
 }
 
 void ManageMiners::addMinerEntry()
 {
+    blockSignals(true);
     QInputDialog inputDiag(this);
     inputDiag.setInputMode(QInputDialog::TextInput);
     inputDiag.setLabelText("Name for Miner");
@@ -146,6 +165,7 @@ void ManageMiners::addMinerEntry()
             minerList->setCurrentItem(newItem);
         }
     }
+    updateMinerPage();
 }
 
 void ManageMiners::changeEvent(QEvent *e)

@@ -397,9 +397,9 @@ void MainWindow::startMiner(QString name){
     QVariantMap minerEntry = settings.value("miners").toMap().value(name).toMap();
     qDebug() << minerEntry;
 
-    miner->start(minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
     actionMinerControl->setEnabled(false);
     actionMinerControl->setText(QString("Stop `%1`").arg(name));
+    miner->start(minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
 }
 
 void MainWindow::showMinerManagement(){
