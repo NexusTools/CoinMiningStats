@@ -12,8 +12,6 @@
 #include <QDebug>
 #include <QThread>
 
-#define IDLE_SECONDS 60
-
 QProcess MainWindow::miner;
 
 void MainWindow::shutdown(){
@@ -49,11 +47,11 @@ MainWindow::MainWindow(QWidget *parent) :
     workers_rate->setMode(ColorIndicatorLabel::HashRate);
 
     updateAccountDataTimer.setSingleShot(true);
-    updateAccountDataTimer.setInterval(15000);
+    updateAccountDataTimer.setInterval(10000);
     connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
 
     updateBlockInfoTimer.setSingleShot(true);
-    updateBlockInfoTimer.setInterval(60000 * 4);
+    updateBlockInfoTimer.setInterval(30000);
     connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
 
     accountDataRequest = 0;
@@ -85,7 +83,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(actionSet_API_Token, SIGNAL(triggered()), this, SLOT(changeApiToken()));
     connect(actionMinerControl, SIGNAL(triggered()), this, SLOT(toggleMiner()));
     connect(&killMiner, SIGNAL(timeout()), &miner, SLOT(kill()));
-    connect(&miner, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(minerExited(int,QProcess::ExitStatus)));
     connect(&miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
     connect(&miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
     connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
@@ -138,8 +135,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if(qApp->arguments().contains("-r"))
         QTimer::singleShot(100, this, SLOT(toggleMiner()));
-    if(qApp->arguments().contains("-a"))
+
+    if(qApp->arguments().contains("-a")) {
+        actionMinerControl->setDisabled(true);
         actionIdleControl->setChecked(true);
+    }
 }
 
 void MainWindow::focusInEvent(QFocusEvent *)
@@ -317,7 +317,7 @@ void MainWindow::updateSelectedMiner(QAction* action)
 
 bool MainWindow::isMinerBusy()
 {
-    return !QProcess::Starting && !killMiner.isActive();
+    return miner.state() == QProcess::Starting || killMiner.isActive();
 }
 
 void MainWindow::checkIdle()
@@ -327,7 +327,7 @@ void MainWindow::checkIdle()
         lastMouseMove.start();
         lastMousePos = mPos;
         stopMiner();
-    } else if(lastMouseMove.elapsed() > IDLE_SECONDS * 1000) {
+    } else if(lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000) {
         lastMouseMove.start();
         if(miner.state() == QProcess::NotRunning)
             startMiner();
@@ -343,10 +343,6 @@ void MainWindow::idleControlUpdated()
         idleWatcher.stop();
         actionMinerControl->setEnabled(!isMinerBusy());
     }
-}
-
-void MainWindow::minerExited(int code, QProcess::ExitStatus){
-    //updateSelectedMiner(minerGroup->checkedAction());
 }
 
 void MainWindow::passStdOut(){
@@ -388,6 +384,9 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
 {
     qDebug() << "Miner State Changed" << state;
     switch(state) {
+    default:
+        return;
+
     case QProcess::NotRunning:
         if(killMiner.isActive()) {
             showMessage("Miner Stopped", "The mining software has stopped running.");
@@ -417,6 +416,9 @@ void MainWindow::stopMiner(){
 
 void MainWindow::toggleMiner(){
     switch(miner.state()){
+    default:
+        return;
+
     case QProcess::Running:
         stopMiner();
         break;
@@ -501,14 +503,15 @@ void MainWindow::requestPoolStatsUpdate()
     qDebug() << "Requesting Pool Statistics Update";
     if(!poolStatsRequest)
         poolStatsRequest->deleteLater();
+
     poolStatsRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/stats/json/%1").arg(apiKey))));
     connect(poolStatsRequest, SIGNAL(finished()), this, SLOT(poolStatsReply()));
 }
 
 void MainWindow::accountDataReply()
 {
+    QTimer::singleShot(0, accountDataRequest, SLOT(deleteLater()));
     updateAccountDataTimer.start();
-    accountDataRequest->deleteLater();
     if(accountDataRequest->error()) {
         qWarning() << "Request Failed" << accountDataRequest->errorString();
 
@@ -591,12 +594,13 @@ void MainWindow::accountDataReply()
     } else {
         qWarning() << "Bad Reply";
     }
+
     accountDataRequest = 0;
 }
 
 void MainWindow::poolStatsReply()
 {
-    poolStatsRequest->deleteLater();
+    QTimer::singleShot(0, poolStatsRequest, SLOT(deleteLater()));
     if(poolStatsRequest->error()) {
         qWarning() << "Pool Statistics Request Failed" << poolStatsRequest->errorString();
 
@@ -639,13 +643,14 @@ void MainWindow::poolStatsReply()
     } else {
         qWarning() << "Bad Reply";
     }
+
     poolStatsRequest = 0;
 }
 
 void MainWindow::blockInfoReply()
 {
+    QTimer::singleShot(0, blockInfoRequest, SLOT(deleteLater()));
     updateBlockInfoTimer.start();
-    blockInfoRequest->deleteLater();
     if(blockInfoRequest->error()) {
         qWarning() << "Pool Statistics Request Failed" << poolStatsRequest->errorString();
 
@@ -669,6 +674,7 @@ void MainWindow::blockInfoReply()
     } else {
         qWarning() << "Bad Reply";
     }
+
     blockInfoRequest = 0;
 }
 

@@ -51,3 +51,12 @@ HEADERS += \
 
 SOURCES += \
     loosejson.cpp
+
+HEADERS += \
+    settings.h
+
+SOURCES += \
+    settings.cpp
+
+FORMS += \
+    settings.ui

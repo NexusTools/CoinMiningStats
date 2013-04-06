@@ -56,7 +56,6 @@ public slots:
     void toggleVisible();
     void changeApiToken();
     void updateSelectedMiner(QAction* =0);
-    void minerExited(int code, QProcess::ExitStatus);
     void minerStateChanged(QProcess::ProcessState);
 
     bool isMinerBusy();
