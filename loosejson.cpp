@@ -21,7 +21,7 @@ QVariant _parse(QIODevice* device, bool startup=true)
             data = QByteArray("Parse Error: Unexpected ") + error;
         }
         if(errorList.size())
-            qDebug() << errorList;
+            qWarning() << errorList;
         return data;
     }
 
@@ -48,14 +48,12 @@ QVariant _parse(QIODevice* device, bool startup=true)
                 breakLoop = true;
                 break;
             }
-            qDebug() << "Entering Array";
             QVariantList list;
             while(true)
                 try {
                     list.append(_parse(device, false));
                 } catch(QByteArray) {} // Skip
 
-            qDebug() << "Leaving Array" << list;
             return list;
         }
             break;
@@ -67,7 +65,6 @@ QVariant _parse(QIODevice* device, bool startup=true)
                 breakLoop = true;
                 break;
             }
-            qDebug() << "Entering Map";
             QVariantMap map;
             try {
                 while(true) {
@@ -89,7 +86,6 @@ QVariant _parse(QIODevice* device, bool startup=true)
                     } catch(QByteArray) {}
                 }
             } catch(const char* error) {}
-            qDebug() << "Leaving Map" << map;
             return map;
         }
             break;
@@ -173,6 +169,5 @@ QVariant LooseJSON::parse(QByteArray data)
     buffer.setBuffer(&data);
     buffer.open(QIODevice::ReadOnly);
     QVariant dat = _parse(&buffer);
-    qDebug() << dat;
     return dat;
 }

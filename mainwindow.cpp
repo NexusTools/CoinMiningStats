@@ -54,8 +54,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	updateBlockInfoTimer.setInterval(30000);
 	connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
 
-	accountDataRequest = 0;
-	poolStatsRequest = 0;
+    accountDataRequest = 0;
+    blockInfoRequest = 0;
+    poolStatsRequest = 0;
 	widgetMode = false;
 
 	killMiner.setInterval(1500);
@@ -296,7 +297,6 @@ void MainWindow::minersUpdated(QVariantMap data, bool store){
 		selMiner->setChecked(true);
 	updateSelectedMiner(selMiner);
 
-	qDebug() << data;
 	if(store) {
 		settings.setValue("miners", data);
 		settings.sync();
@@ -406,8 +406,8 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
 
 void MainWindow::stopMiner(){
 	if(miner.state() != QProcess::Running || killMiner.isActive())
-		return;
-	qDebug() << "Stopping Miner";
+        return;
+
 	showMessage("Stopping Miner", "The mining software is being stopped.");
 	miner.terminate();
 	killMiner.start();
@@ -442,13 +442,11 @@ void MainWindow::startMiner(QString name){
 		name = active->text();
 	}
 
-	qDebug() << "Starting Miner" << name;
 	QVariantMap minerEntry = settings.value("miners").toMap().value(name).toMap();
 	if(minerEntry.isEmpty()) {
 		qWarning() << "Attempted to Start Invalid Miner" << name;
 		return;
-	}
-	qDebug() << minerEntry;
+    }
 
 	actionMinerControl->setEnabled(false);
 	actionMinerControl->setText(QString("Stop `%1`").arg(name));
@@ -482,7 +480,7 @@ void MainWindow::requestAccountDataUpdate()
 {
 	updateAccountDataTimer.stop();
 	qDebug() << "Requesting Account Data Update";
-	if(!accountDataRequest)
+    if(accountDataRequest)
 		accountDataRequest->deleteLater();
 	accountDataRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
 	connect(accountDataRequest, SIGNAL(finished()), this, SLOT(accountDataReply()));
@@ -492,7 +490,7 @@ void MainWindow::requestBlockInfoUpdate()
 {
 	updateBlockInfoTimer.stop();
 	qDebug() << "Requesting Pool Statistics Update";
-	if(!blockInfoRequest)
+    if(blockInfoRequest)
 		blockInfoRequest->deleteLater();
 	blockInfoRequest = accessMan.get(QNetworkRequest(QUrl("http://blockchain.info/latestblock")));
 	connect(blockInfoRequest, SIGNAL(finished()), this, SLOT(blockInfoReply()));
@@ -501,7 +499,7 @@ void MainWindow::requestBlockInfoUpdate()
 void MainWindow::requestPoolStatsUpdate()
 {
 	qDebug() << "Requesting Pool Statistics Update";
-	if(!poolStatsRequest)
+    if(poolStatsRequest)
 		poolStatsRequest->deleteLater();
 
 	poolStatsRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/stats/json/%1").arg(apiKey))));
@@ -525,13 +523,8 @@ void MainWindow::accountDataReply()
 		return;
 	}
 
-	qreal totalRate = 0;
-	QVariant data;
-	{
-		data = LooseJSON::parse(accountDataRequest->readAll());
-	}
-
-	QVariantMap map = data.toMap();
+    qreal totalRate = 0;
+    QVariantMap map = LooseJSON::parse(accountDataRequest->readAll()).toMap();
 	if(!map.isEmpty()) {
 		qDebug() << map.keys();
 		QStringList knownWorkers;
@@ -591,9 +584,9 @@ void MainWindow::accountDataReply()
 		unconfirmed->setValue(uw);
 		estimated->setValue(map.value("estimated_reward").toReal());
 		potential->setValue(cw + uw);
-	} else {
-		qWarning() << "Bad Reply";
-	}
+    } else
+        qWarning() << "Bad Account Data Reply";
+
 
 	accountDataRequest = 0;
 }
@@ -608,12 +601,8 @@ void MainWindow::poolStatsReply()
 		return;
 	}
 
-	QVariant data;
-	{
-		data = LooseJSON::parse("(" + poolStatsRequest->readAll() + ")");
-	}
+    QVariantMap map = LooseJSON::parse("(" + poolStatsRequest->readAll() + ")").toMap();
 
-	QVariantMap map = data.toMap();
 	if(!map.isEmpty()) {
 		qreal reward = 0;
 		emit receivedPoolStatsData(map);
@@ -641,7 +630,7 @@ void MainWindow::poolStatsReply()
 		next_reward->setValue(reward);
 		confirmations_left->setValue(leastConfirmations);
 	} else {
-		qWarning() << "Bad Reply";
+        qWarning() << "Bad Pool Stats Reply";
 	}
 
 	poolStatsRequest = 0;
@@ -658,9 +647,7 @@ void MainWindow::blockInfoReply()
 		return;
 	}
 
-	QVariant data = LooseJSON::parse("(" + blockInfoRequest->readAll() + ")");
-
-	QVariantMap map = data.toMap();
+    QVariantMap map = LooseJSON::parse("(" + blockInfoRequest->readAll() + ")").toMap();
 	if(!map.isEmpty()) {
 		emit receivedBlockInfoData(map);
 
@@ -671,9 +658,9 @@ void MainWindow::blockInfoReply()
 				requestPoolStatsUpdate();
 			}
 		}
-	} else {
-		qWarning() << "Bad Reply";
-	}
+    } else
+        qWarning() << "Bad Block Info Reply";
+
 
 	blockInfoRequest = 0;
 }
