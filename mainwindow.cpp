@@ -27,7 +27,8 @@ void MainWindow::shutdown(){
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-	QMainWindow(parent)
+    QMainWindow(parent),
+    currencies(0)
 #ifdef DBUS_NOTIFICATIONS
 	,DBusNotificationInterface("org.freedesktop.Notifications",
 							  "/org/freedesktop/Notifications",
@@ -46,6 +47,16 @@ MainWindow::MainWindow(QWidget *parent) :
 	potential->setMode(ColorIndicatorLabel::BitCoins);
 	workers_rate->setMode(ColorIndicatorLabel::HashRate);
 
+    connect(this, SIGNAL(exchangeRateChanged(float,char)), confirmed, SLOT(exchangeRateChanged(float,char)));
+    connect(this, SIGNAL(exchangeRateChanged(float,char)), unconfirmed, SLOT(exchangeRateChanged(float,char)));
+    connect(this, SIGNAL(exchangeRateChanged(float,char)), next_reward, SLOT(exchangeRateChanged(float,char)));
+    connect(this, SIGNAL(exchangeRateChanged(float,char)), estimated, SLOT(exchangeRateChanged(float,char)));
+    connect(this, SIGNAL(exchangeRateChanged(float,char)), potential, SLOT(exchangeRateChanged(float,char)));
+
+    updateExchangeRate.setSingleShot(true);
+    updateExchangeRate.setInterval(50000);
+    connect(&updateExchangeRate, SIGNAL(timeout()), this, SLOT(requestCurrencyExchangeRate()));
+
 	updateAccountDataTimer.setSingleShot(true);
 	updateAccountDataTimer.setInterval(10000);
 	connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
@@ -54,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	updateBlockInfoTimer.setInterval(30000);
 	connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
 
+    exchangeRateRequest = 0;
     accountDataRequest = 0;
     blockInfoRequest = 0;
     poolStatsRequest = 0;
@@ -67,11 +79,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	if(apiKey.isNull())
 		changeApiToken();
-	else {
-		requestAccountDataUpdate();
-		requestPoolStatsUpdate();
-	}
+    else
+        requestAccountDataUpdate();
 
+    exchangeRate = 1;
 	requestBlockInfoUpdate();
 	qDebug() << "Using API Key" << apiKey;
 	connect(&idleWatcher, SIGNAL(timeout()), this, SLOT(checkIdle()));
@@ -86,7 +97,18 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(&killMiner, SIGNAL(timeout()), &miner, SLOT(kill()));
 	connect(&miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
 	connect(&miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
-	connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
+    connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
+
+    QAction* active = 0;
+    activeCurrency = settings.value("currency_display").toString();
+    foreach(QAction* action, menuCurrency->actions()) {
+        if(activeCurrency == action->text())
+            active = action;
+        currencies.addAction(action);
+    }
+    connect(&currencies, SIGNAL(triggered(QAction*)), this, SLOT(displayCurrencyChanged(QAction*)));
+    if(active)
+        active->setChecked(true);
 
 	workers->resizeColumnsToContents();
 	dragPoint = QPoint(-1, -1);
@@ -206,8 +228,8 @@ void MainWindow::changeApiToken()
 	apiKey = inputDiag.textValue();
 
 	if(!apiKey.isNull()) {
-		requestAccountDataUpdate();
-		requestPoolStatsUpdate();
+        requestPoolStatsUpdate();
+        requestAccountDataUpdate();
 		settings.setValue("slush_api", apiKey);
 	}
 }
@@ -476,6 +498,28 @@ void MainWindow::showGraph(){
 	connect(this, SIGNAL(receivedAccountData(QVariantMap)), graph, SLOT(receivedAccountData(QVariantMap)));
 }
 
+void MainWindow::displayCurrencyChanged(QAction* act) {
+    activeCurrency = act->text();
+    settings.setValue("display_currency", activeCurrency);
+    qDebug() << "Currency changed to" << activeCurrency;
+    requestCurrencyExchangeRate();
+}
+
+void MainWindow::requestCurrencyExchangeRate()
+{
+    updateExchangeRate.stop();
+
+    if(exchangeRateRequest)
+        exchangeRateRequest->deleteLater();
+
+    if(activeCurrency == "BTC")
+        return; // Nothing to do
+
+    exchangeRate = -1;
+    exchangeRateRequest = accessMan.get(QNetworkRequest(QUrl(QString("http://data.mtgox.com/api/2/BTC%1/money/ticker_fast").arg(activeCurrency))));
+    connect(exchangeRateRequest, SIGNAL(finished()), this, SLOT(exchangeRateReply()));
+}
+
 void MainWindow::requestAccountDataUpdate()
 {
 	updateAccountDataTimer.stop();
@@ -506,9 +550,39 @@ void MainWindow::requestPoolStatsUpdate()
 	connect(poolStatsRequest, SIGNAL(finished()), this, SLOT(poolStatsReply()));
 }
 
+void MainWindow::exchangeRateReply() {
+    QTimer::singleShot(0, exchangeRateRequest, SLOT(deleteLater()));
+
+    updateExchangeRate.start();
+    if(exchangeRateRequest->error()) {
+        qWarning() << "Request Failed" << exchangeRateRequest->errorString();
+        exchangeRateRequest = 0;
+        return;
+
+    }
+
+    bool okay;
+    QVariantMap map = LooseJSON::parse(exchangeRateRequest->readAll()).toMap();
+    exchangeRate = map.value("data").toMap().value("buy").toMap().value("value").toFloat(&okay);
+    if(!okay) {
+        qCritical() << "Failed to retreive exchange rate for requested currency...";
+        exchangeRate = -1;
+    } else {
+        qDebug() << "Exchange rate for BTC to" << activeCurrency << "is" << exchangeRate;
+        char s;
+        if(activeCurrency == "EUR")
+            s = '£';
+        else
+            s = '$';
+        emit exchangeRateChanged(exchangeRate, s);
+    }
+
+    exchangeRateRequest = 0;
+}
+
 void MainWindow::accountDataReply()
 {
-	QTimer::singleShot(0, accountDataRequest, SLOT(deleteLater()));
+    QTimer::singleShot(0, accountDataRequest, SLOT(deleteLater()));
 	updateAccountDataTimer.start();
 	if(accountDataRequest->error()) {
 		qWarning() << "Request Failed" << accountDataRequest->errorString();
@@ -573,17 +647,19 @@ void MainWindow::accountDataReply()
 
 		workers->resizeColumnsToContents();
 
-		qreal cw = map.value("confirmed_reward").toReal();
-		qreal uw = map.value("unconfirmed_reward").toReal();
+        ew = map.value("estimated_reward").toReal();
+        cw = map.value("confirmed_reward").toReal();
+        uw = map.value("unconfirmed_reward").toReal();
 		workers->horizontalHeader()->setVisible(true);
 		// Set Labels
 		workers_rate->setValue(totalRate);
 		if(trayHashRate)
-			trayHashRate->setText(QString("HashRate: %1").arg(workers_rate->text()));
-		confirmed->setValue(cw);
-		unconfirmed->setValue(uw);
-		estimated->setValue(map.value("estimated_reward").toReal());
-		potential->setValue(cw + uw);
+            trayHashRate->setText(QString("HashRate: %1").arg(workers_rate->text()));
+
+        confirmed->setValue(cw);
+        unconfirmed->setValue(uw);
+        estimated->setValue(ew);
+        potential->setValue(cw + uw);
     } else
         qWarning() << "Bad Account Data Reply";
 

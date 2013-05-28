@@ -26,6 +26,7 @@ public:
 public slots:
     void updateColor();
     void setInverted(bool i);
+    void exchangeRateChanged(float e, char c);
     void setValue(qreal r);
 
 private:
@@ -35,6 +36,8 @@ private:
 
     QTimer updateTimer;
     qreal v, dv;
+    float e;
+    char c;
     Mode m;
 };
 

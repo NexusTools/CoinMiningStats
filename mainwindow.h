@@ -7,6 +7,7 @@
 #include <QDBusInterface>
 #endif
 
+#include <QActionGroup>
 #include <QSystemTrayIcon>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -41,7 +42,10 @@ public slots:
     void requestBlockInfoUpdate();
     void requestPoolStatsUpdate();
     void requestAccountDataUpdate();
+    void requestCurrencyExchangeRate();
+    void displayCurrencyChanged(QAction*);
 
+    void exchangeRateReply();
     void accountDataReply();
     void poolStatsReply();
     void blockInfoReply();
@@ -76,10 +80,15 @@ signals:
     void receivedPoolStatsData(QVariantMap data);
     void receivedAccountData(QVariantMap data);
     void receivedBlockInfoData(QVariantMap data);
+    void exchangeRateChanged(float, char);
     void invertChanged(bool);
 
 private:
+    friend class ColorIndicatorLabel;
+
     QString apiKey;
+    QString activeCurrency;
+    float exchangeRate;
 
     QTime lastMouseMove;
     QPoint lastMousePos;
@@ -91,18 +100,26 @@ private:
     QAction* trayHashRate;
     QSystemTrayIcon* trayIcon;
     QNetworkAccessManager accessMan;
+    QNetworkReply* exchangeRateRequest;
     QNetworkReply* accountDataRequest;
     QNetworkReply* poolStatsRequest;
     QNetworkReply* blockInfoRequest;
     QTimer updateAccountDataTimer;
     QTimer updateBlockInfoTimer;
+    QTimer updateExchangeRate;
 
     QPoint dragPoint;
     QSettings settings;
     bool widgetMode;
 
+    QActionGroup currencies;
     ManageMiners* miners;
     Graph* graph;
+
+    // Cached Values
+    qreal cw;
+    qreal uw;
+    qreal ew;
 
 #ifdef DBUS_NOTIFICATIONS
     QDBusInterface DBusNotificationInterface;

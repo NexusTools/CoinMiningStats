@@ -255,16 +255,7 @@
     <item>
      <widget class="QWidget" name="advanced" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_13">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
+       <property name="margin">
         <number>0</number>
        </property>
        <item>
@@ -387,7 +378,7 @@
      <x>0</x>
      <y>0</y>
      <width>465</width>
-     <height>20</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuBitMinerStats">
@@ -421,7 +412,23 @@
     <addaction name="separator"/>
     <addaction name="actionNo_Miners_Configured"/>
    </widget>
+   <widget class="QMenu" name="menuDisplay">
+    <property name="title">
+     <string>Display</string>
+    </property>
+    <widget class="QMenu" name="menuCurrency">
+     <property name="title">
+      <string>Currency</string>
+     </property>
+     <addaction name="actionBTC"/>
+     <addaction name="actionUSD"/>
+     <addaction name="actionCAD"/>
+     <addaction name="actionEUR"/>
+    </widget>
+    <addaction name="menuCurrency"/>
+   </widget>
    <addaction name="menuBitMinerStats"/>
+   <addaction name="menuDisplay"/>
    <addaction name="menuMining"/>
    <addaction name="menuAbout"/>
   </widget>
@@ -524,6 +531,38 @@
    </property>
    <property name="text">
     <string>Idle Auto-Control</string>
+   </property>
+  </action>
+  <action name="actionBTC">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>BTC</string>
+   </property>
+  </action>
+  <action name="actionUSD">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>USD</string>
+   </property>
+  </action>
+  <action name="actionCAD">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>CAD</string>
+   </property>
+  </action>
+  <action name="actionEUR">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>EUR</string>
    </property>
   </action>
  </widget>

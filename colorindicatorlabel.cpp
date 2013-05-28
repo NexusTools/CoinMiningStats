@@ -1,4 +1,5 @@
 #include "colorindicatorlabel.h"
+#include "mainwindow.h"
 
 #include <QPainter>
 #include <QDebug>
@@ -11,6 +12,7 @@ ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
 
     m = Other;
     dv = 0;
+    e = 1;
     v = 0;
 
     r = 0;
@@ -74,6 +76,19 @@ void ColorIndicatorLabel::setInverted(bool i)
     updateTimer.start();
 }
 
+void ColorIndicatorLabel::exchangeRateChanged(float _e, char _c) {
+    e = _e;
+    c = _c;
+    if(m == BitCoins) {
+
+        if(e == 1)
+            setText(QString::number(v, 'f', 8));
+        else
+            setText(QString("%1%2").arg(c).arg(QString::number(v * e, 'f', 2)));
+    }
+
+}
+
 void ColorIndicatorLabel::setValue(qreal v){
     if(v == this->v)
         return;
@@ -98,7 +113,10 @@ void ColorIndicatorLabel::setValue(qreal v){
 
     switch(m){
         case BitCoins:
-            setText(QString::number(v, 'f', 8));
+            if(e == 1)
+                setText(QString::number(v, 'f', 8));
+            else
+                setText(QString("%1%2").arg(c).arg(QString::number(v * e, 'f', 2)));
             break;
 
         case HashRate:

@@ -66,9 +66,7 @@ void Graph::paintEvent(QPaintEvent *)
     p.end();
 }
 
-void Graph::receivedPoolStatsData(QVariantMap data){
-
-}
+void Graph::receivedPoolStatsData(QVariantMap){}
 
 void Graph::receivedAccountData(QVariantMap data){
     if(data.contains("workers")){
