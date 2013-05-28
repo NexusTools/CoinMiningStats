@@ -489,7 +489,7 @@ void MainWindow::requestAccountDataUpdate()
 void MainWindow::requestBlockInfoUpdate()
 {
 	updateBlockInfoTimer.stop();
-	qDebug() << "Requesting Pool Statistics Update";
+    qDebug() << "Requesting Block Info Update";
     if(blockInfoRequest)
 		blockInfoRequest->deleteLater();
 	blockInfoRequest = accessMan.get(QNetworkRequest(QUrl("http://blockchain.info/latestblock")));
