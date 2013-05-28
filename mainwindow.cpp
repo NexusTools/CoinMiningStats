@@ -100,15 +100,16 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
 
     QAction* active = 0;
-    activeCurrency = settings.value("currency_display").toString();
+    activeCurrency = settings.value("display_currency", "BTC").toString();
     foreach(QAction* action, menuCurrency->actions()) {
         if(activeCurrency == action->text())
             active = action;
         currencies.addAction(action);
     }
-    connect(&currencies, SIGNAL(triggered(QAction*)), this, SLOT(displayCurrencyChanged(QAction*)));
     if(active)
         active->setChecked(true);
+    connect(&currencies, SIGNAL(triggered(QAction*)), this, SLOT(displayCurrencyChanged(QAction*)));
+    requestCurrencyExchangeRate();
 
 	workers->resizeColumnsToContents();
 	dragPoint = QPoint(-1, -1);
@@ -512,8 +513,10 @@ void MainWindow::requestCurrencyExchangeRate()
     if(exchangeRateRequest)
         exchangeRateRequest->deleteLater();
 
-    if(activeCurrency == "BTC")
+    if(activeCurrency == "BTC") {
+        emit exchangeRateChanged(1, 'B');
         return; // Nothing to do
+    }
 
     exchangeRate = -1;
     exchangeRateRequest = accessMan.get(QNetworkRequest(QUrl(QString("http://data.mtgox.com/api/2/BTC%1/money/ticker_fast").arg(activeCurrency))));
