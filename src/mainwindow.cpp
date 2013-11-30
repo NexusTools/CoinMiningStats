@@ -27,8 +27,8 @@ void MainWindow::shutdown(){
 }
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    currencies(0)
+	QMainWindow(parent),
+	currencies(0)
 #ifdef DBUS_NOTIFICATIONS
 	,DBusNotificationInterface("org.freedesktop.Notifications",
 							  "/org/freedesktop/Notifications",
@@ -53,9 +53,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), estimated, SLOT(exchangeRateChanged(float,QChar)));
 	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), potential, SLOT(exchangeRateChanged(float,QChar)));
 
-    updateExchangeRate.setSingleShot(true);
-    updateExchangeRate.setInterval(50000);
-    connect(&updateExchangeRate, SIGNAL(timeout()), this, SLOT(requestCurrencyExchangeRate()));
+	updateExchangeRate.setSingleShot(true);
+	updateExchangeRate.setInterval(50000);
+	connect(&updateExchangeRate, SIGNAL(timeout()), this, SLOT(requestCurrencyExchangeRate()));
 
 	updateAccountDataTimer.setSingleShot(true);
 	updateAccountDataTimer.setInterval(10000);
@@ -65,10 +65,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	updateBlockInfoTimer.setInterval(30000);
 	connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
 
-    exchangeRateRequest = 0;
-    accountDataRequest = 0;
-    blockInfoRequest = 0;
-    poolStatsRequest = 0;
+	exchangeRateRequest = 0;
+	accountDataRequest = 0;
+	blockInfoRequest = 0;
+	poolStatsRequest = 0;
 	widgetMode = false;
 
 	killMiner.setInterval(1500);
@@ -79,10 +79,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	if(apiKey.isNull())
 		changeApiToken();
-    else
-        requestAccountDataUpdate();
+	else
+		requestAccountDataUpdate();
 
-    exchangeRate = 1;
+	exchangeRate = 1;
 	requestBlockInfoUpdate();
 	qDebug() << "Using API Key" << apiKey;
 	connect(&idleWatcher, SIGNAL(timeout()), this, SLOT(checkIdle()));
@@ -97,19 +97,19 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(&killMiner, SIGNAL(timeout()), &miner, SLOT(kill()));
 	connect(&miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
 	connect(&miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
-    connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
+	connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
 
-    QAction* active = 0;
-    activeCurrency = settings.value("display_currency", "BTC").toString();
-    foreach(QAction* action, menuCurrency->actions()) {
-        if(activeCurrency == action->text())
-            active = action;
-        currencies.addAction(action);
-    }
-    if(active)
-        active->setChecked(true);
-    connect(&currencies, SIGNAL(triggered(QAction*)), this, SLOT(displayCurrencyChanged(QAction*)));
-    requestCurrencyExchangeRate();
+	QAction* active = 0;
+	activeCurrency = settings.value("display_currency", "BTC").toString();
+	foreach(QAction* action, menuCurrency->actions()) {
+		if(activeCurrency == action->text())
+			active = action;
+		currencies.addAction(action);
+	}
+	if(active)
+		active->setChecked(true);
+	connect(&currencies, SIGNAL(triggered(QAction*)), this, SLOT(displayCurrencyChanged(QAction*)));
+	requestCurrencyExchangeRate();
 
 	workers->resizeColumnsToContents();
 	dragPoint = QPoint(-1, -1);
@@ -229,8 +229,8 @@ void MainWindow::changeApiToken()
 	apiKey = inputDiag.textValue();
 
 	if(!apiKey.isNull()) {
-        requestPoolStatsUpdate();
-        requestAccountDataUpdate();
+		requestPoolStatsUpdate();
+		requestAccountDataUpdate();
 		settings.setValue("slush_api", apiKey);
 	}
 }
@@ -431,7 +431,7 @@ void MainWindow::minerStateChanged(QProcess::ProcessState state)
 
 void MainWindow::stopMiner(){
 	if(miner.state() != QProcess::Running || killMiner.isActive())
-        return;
+		return;
 
 	showMessage("Stopping Miner", "The mining software is being stopped.");
 	miner.terminate();
@@ -471,7 +471,7 @@ void MainWindow::startMiner(QString name){
 	if(minerEntry.isEmpty()) {
 		qWarning() << "Attempted to Start Invalid Miner" << name;
 		return;
-    }
+	}
 
 	actionMinerControl->setEnabled(false);
 	actionMinerControl->setText(QString("Stop `%1`").arg(name));
@@ -502,34 +502,36 @@ void MainWindow::showGraph(){
 }
 
 void MainWindow::displayCurrencyChanged(QAction* act) {
-    activeCurrency = act->text();
-    settings.setValue("display_currency", activeCurrency);
-    qDebug() << "Currency changed to" << activeCurrency;
-    requestCurrencyExchangeRate();
+	activeCurrency = act->text();
+	settings.setValue("display_currency", activeCurrency);
+	qDebug() << "Currency changed to" << activeCurrency;
+	requestCurrencyExchangeRate();
 }
 
 void MainWindow::requestCurrencyExchangeRate()
 {
-    updateExchangeRate.stop();
+	updateExchangeRate.stop();
 
-    if(exchangeRateRequest)
-        exchangeRateRequest->deleteLater();
+	if(exchangeRateRequest)
+		exchangeRateRequest->deleteLater();
 
-    if(activeCurrency == "BTC") {
-        emit exchangeRateChanged(1, 'B');
-        return; // Nothing to do
-    }
+	if(activeCurrency == "BTC") {
+		emit exchangeRateChanged(1, 'B');
+		return; // Nothing to do
+	}
 
-    exchangeRate = -1;
-    exchangeRateRequest = accessMan.get(QNetworkRequest(QUrl(QString("http://data.mtgox.com/api/2/BTC%1/money/ticker_fast").arg(activeCurrency))));
-    connect(exchangeRateRequest, SIGNAL(finished()), this, SLOT(exchangeRateReply()));
+	exchangeRate = -1;
+	exchangeRateRequest = accessMan.get(QNetworkRequest(QUrl(QString("http://data.mtgox.com/api/2/BTC%1/money/ticker_fast").arg(activeCurrency))));
+	connect(exchangeRateRequest, SIGNAL(finished()), this, SLOT(exchangeRateReply()));
 }
 
 void MainWindow::requestAccountDataUpdate()
 {
 	updateAccountDataTimer.stop();
 	qDebug() << "Requesting Account Data Update";
-    if(accountDataRequest)
+	if(apiKey.isEmpty())
+		return;
+	if(accountDataRequest)
 		accountDataRequest->deleteLater();
 	accountDataRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
 	connect(accountDataRequest, SIGNAL(finished()), this, SLOT(accountDataReply()));
@@ -538,8 +540,8 @@ void MainWindow::requestAccountDataUpdate()
 void MainWindow::requestBlockInfoUpdate()
 {
 	updateBlockInfoTimer.stop();
-    qDebug() << "Requesting Block Info Update";
-    if(blockInfoRequest)
+	qDebug() << "Requesting Block Info Update";
+	if(blockInfoRequest)
 		blockInfoRequest->deleteLater();
 	blockInfoRequest = accessMan.get(QNetworkRequest(QUrl("http://blockchain.info/latestblock")));
 	connect(blockInfoRequest, SIGNAL(finished()), this, SLOT(blockInfoReply()));
@@ -548,7 +550,7 @@ void MainWindow::requestBlockInfoUpdate()
 void MainWindow::requestPoolStatsUpdate()
 {
 	qDebug() << "Requesting Pool Statistics Update";
-    if(poolStatsRequest)
+	if(poolStatsRequest)
 		poolStatsRequest->deleteLater();
 
 	poolStatsRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/stats/json/%1").arg(apiKey))));
@@ -556,38 +558,38 @@ void MainWindow::requestPoolStatsUpdate()
 }
 
 void MainWindow::exchangeRateReply() {
-    QTimer::singleShot(0, exchangeRateRequest, SLOT(deleteLater()));
+	QTimer::singleShot(0, exchangeRateRequest, SLOT(deleteLater()));
 
-    updateExchangeRate.start();
-    if(exchangeRateRequest->error()) {
-        qWarning() << "Request Failed" << exchangeRateRequest->errorString();
-        exchangeRateRequest = 0;
-        return;
+	updateExchangeRate.start();
+	if(exchangeRateRequest->error()) {
+		qWarning() << "Request Failed" << exchangeRateRequest->errorString();
+		exchangeRateRequest = 0;
+		return;
 
-    }
+	}
 
-    bool okay;
-    QVariantMap map = LooseJSON::parse(exchangeRateRequest->readAll()).toMap();
-    exchangeRate = map.value("data").toMap().value("buy").toMap().value("value").toFloat(&okay);
-    if(!okay) {
-        qCritical() << "Failed to retreive exchange rate for requested currency...";
-        exchangeRate = -1;
-    } else {
-        qDebug() << "Exchange rate for BTC to" << activeCurrency << "is" << exchangeRate;
+	bool okay;
+	QVariantMap map = LooseJSON::parse(exchangeRateRequest->readAll()).toMap();
+	exchangeRate = map.value("data").toMap().value("buy").toMap().value("value").toFloat(&okay);
+	if(!okay) {
+		qCritical() << "Failed to retreive exchange rate for requested currency...";
+		exchangeRate = -1;
+	} else {
+		qDebug() << "Exchange rate for BTC to" << activeCurrency << "is" << exchangeRate;
 		QChar s;
-        if(activeCurrency == "EUR")
+		if(activeCurrency == "EUR")
 			s = L'£';
-        else
-            s = '$';
-        emit exchangeRateChanged(exchangeRate, s);
-    }
+		else
+			s = '$';
+		emit exchangeRateChanged(exchangeRate, s);
+	}
 
-    exchangeRateRequest = 0;
+	exchangeRateRequest = 0;
 }
 
 void MainWindow::accountDataReply()
 {
-    QTimer::singleShot(0, accountDataRequest, SLOT(deleteLater()));
+	QTimer::singleShot(0, accountDataRequest, SLOT(deleteLater()));
 	updateAccountDataTimer.start();
 	if(accountDataRequest->error()) {
 		qWarning() << "Request Failed" << accountDataRequest->errorString();
@@ -602,8 +604,8 @@ void MainWindow::accountDataReply()
 		return;
 	}
 
-    qreal totalRate = 0;
-    QVariantMap map = LooseJSON::parse(accountDataRequest->readAll()).toMap();
+	qreal totalRate = 0;
+	QVariantMap map = LooseJSON::parse(accountDataRequest->readAll()).toMap();
 	if(!map.isEmpty()) {
 		qDebug() << map.keys();
 		QStringList knownWorkers;
@@ -652,21 +654,21 @@ void MainWindow::accountDataReply()
 
 		workers->resizeColumnsToContents();
 
-        ew = map.value("estimated_reward").toReal();
-        cw = map.value("confirmed_reward").toReal();
-        uw = map.value("unconfirmed_reward").toReal();
+		ew = map.value("estimated_reward").toReal();
+		cw = map.value("confirmed_reward").toReal();
+		uw = map.value("unconfirmed_reward").toReal();
 		workers->horizontalHeader()->setVisible(true);
 		// Set Labels
 		workers_rate->setValue(totalRate);
 		if(trayHashRate)
-            trayHashRate->setText(QString("HashRate: %1").arg(workers_rate->text()));
+			trayHashRate->setText(QString("HashRate: %1").arg(workers_rate->text()));
 
-        confirmed->setValue(cw);
-        unconfirmed->setValue(uw);
-        estimated->setValue(ew);
-        potential->setValue(cw + uw);
-    } else
-        qWarning() << "Bad Account Data Reply";
+		confirmed->setValue(cw);
+		unconfirmed->setValue(uw);
+		estimated->setValue(ew);
+		potential->setValue(cw + uw);
+	} else
+		qWarning() << "Bad Account Data Reply";
 
 
 	accountDataRequest = 0;
@@ -682,7 +684,7 @@ void MainWindow::poolStatsReply()
 		return;
 	}
 
-    QVariantMap map = LooseJSON::parse("(" + poolStatsRequest->readAll() + ")").toMap();
+	QVariantMap map = LooseJSON::parse("(" + poolStatsRequest->readAll() + ")").toMap();
 
 	if(!map.isEmpty()) {
 		qreal reward = 0;
@@ -711,7 +713,7 @@ void MainWindow::poolStatsReply()
 		next_reward->setValue(reward);
 		confirmations_left->setValue(leastConfirmations);
 	} else {
-        qWarning() << "Bad Pool Stats Reply";
+		qWarning() << "Bad Pool Stats Reply";
 	}
 
 	poolStatsRequest = 0;
@@ -728,7 +730,7 @@ void MainWindow::blockInfoReply()
 		return;
 	}
 
-    QVariantMap map = LooseJSON::parse("(" + blockInfoRequest->readAll() + ")").toMap();
+	QVariantMap map = LooseJSON::parse("(" + blockInfoRequest->readAll() + ")").toMap();
 	if(!map.isEmpty()) {
 		emit receivedBlockInfoData(map);
 
@@ -739,8 +741,8 @@ void MainWindow::blockInfoReply()
 				requestPoolStatsUpdate();
 			}
 		}
-    } else
-        qWarning() << "Bad Block Info Reply";
+	} else
+		qWarning() << "Bad Block Info Reply";
 
 
 	blockInfoRequest = 0;
