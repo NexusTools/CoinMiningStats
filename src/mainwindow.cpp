@@ -47,11 +47,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	potential->setMode(ColorIndicatorLabel::BitCoins);
 	workers_rate->setMode(ColorIndicatorLabel::HashRate);
 
-    connect(this, SIGNAL(exchangeRateChanged(float,char)), confirmed, SLOT(exchangeRateChanged(float,char)));
-    connect(this, SIGNAL(exchangeRateChanged(float,char)), unconfirmed, SLOT(exchangeRateChanged(float,char)));
-    connect(this, SIGNAL(exchangeRateChanged(float,char)), next_reward, SLOT(exchangeRateChanged(float,char)));
-    connect(this, SIGNAL(exchangeRateChanged(float,char)), estimated, SLOT(exchangeRateChanged(float,char)));
-    connect(this, SIGNAL(exchangeRateChanged(float,char)), potential, SLOT(exchangeRateChanged(float,char)));
+	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), confirmed, SLOT(exchangeRateChanged(float,QChar)));
+	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), unconfirmed, SLOT(exchangeRateChanged(float,QChar)));
+	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), next_reward, SLOT(exchangeRateChanged(float,QChar)));
+	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), estimated, SLOT(exchangeRateChanged(float,QChar)));
+	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), potential, SLOT(exchangeRateChanged(float,QChar)));
 
     updateExchangeRate.setSingleShot(true);
     updateExchangeRate.setInterval(50000);
@@ -160,7 +160,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	if(qApp->arguments().contains("-r"))
 		QTimer::singleShot(100, this, SLOT(toggleMiner()));
 
-	if(qApp->arguments().contains("-a")) {
+	if(qApp->arguments().contains("-a") || settings.value("auto").toBool()) {
 		actionMinerControl->setDisabled(true);
 		actionIdleControl->setChecked(true);
 	}
@@ -335,6 +335,7 @@ void MainWindow::updateSelectedMiner(QAction* action)
 		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
 	}
 
+	actionMinerControl->setEnabled(action);
 	actionIdleControl->setEnabled(action);
 }
 
@@ -359,6 +360,7 @@ void MainWindow::checkIdle()
 
 void MainWindow::idleControlUpdated()
 {
+	settings.setValue("auto", actionIdleControl->isChecked());
 	if(actionIdleControl->isChecked()) {
 		idleWatcher.start();
 		actionMinerControl->setEnabled(false);
@@ -572,9 +574,9 @@ void MainWindow::exchangeRateReply() {
         exchangeRate = -1;
     } else {
         qDebug() << "Exchange rate for BTC to" << activeCurrency << "is" << exchangeRate;
-        char s;
+		QChar s;
         if(activeCurrency == "EUR")
-            s = '£';
+			s = L'£';
         else
             s = '$';
         emit exchangeRateChanged(exchangeRate, s);

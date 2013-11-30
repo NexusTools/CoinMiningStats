@@ -571,7 +571,7 @@
   <customwidget>
    <class>ColorIndicatorLabel</class>
    <extends>QLabel</extends>
-   <header>colorindicatorlabel.h</header>
+   <header>src/colorindicatorlabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

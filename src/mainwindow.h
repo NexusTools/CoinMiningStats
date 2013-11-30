@@ -80,13 +80,13 @@ signals:
     void receivedPoolStatsData(QVariantMap data);
     void receivedAccountData(QVariantMap data);
     void receivedBlockInfoData(QVariantMap data);
-    void exchangeRateChanged(float, char);
+	void exchangeRateChanged(float, QChar);
     void invertChanged(bool);
 
 private:
     friend class ColorIndicatorLabel;
 
-    QString apiKey;
+	QString apiKey;
     QString activeCurrency;
     float exchangeRate;
 
@@ -109,7 +109,7 @@ private:
     QTimer updateExchangeRate;
 
     QPoint dragPoint;
-    QSettings settings;
+	QSettings settings;
     bool widgetMode;
 
     QActionGroup currencies;

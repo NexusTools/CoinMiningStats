@@ -76,7 +76,7 @@ void ColorIndicatorLabel::setInverted(bool i)
     updateTimer.start();
 }
 
-void ColorIndicatorLabel::exchangeRateChanged(float _e, char _c) {
+void ColorIndicatorLabel::exchangeRateChanged(float _e, QChar _c) {
     e = _e;
     c = _c;
     if(m == BitCoins) {

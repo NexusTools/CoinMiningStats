@@ -16,47 +16,27 @@ linux-g++ {
     DEFINES += DBUS_NOTIFICATIONS
 }
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    graph.cpp
+SOURCES += src/main.cpp\
+        src/mainwindow.cpp \
+    src/graph.cpp \
+    src/settings.cpp \
+    src/loosejson.cpp \
+    src/manageminers.cpp \
+    src/colorindicatorlabel.cpp
 
-HEADERS  += mainwindow.h \
-    graph.h
+HEADERS  += src/mainwindow.h \
+    src/graph.h \
+    src/loosejson.h \
+    src/manageminers.h \
+    src/colorindicatorlabel.h \
+    src/settings.h
 
-FORMS    += mainwindow.ui
+FORMS    += src/mainwindow.ui \
+    src/settings.ui \
+    src/manageminers.ui
 
 OTHER_FILES += \
     widget.css
 
 RESOURCES += \
     resources.qrc
-
-HEADERS += \
-    colorindicatorlabel.h
-
-SOURCES += \
-    colorindicatorlabel.cpp
-
-HEADERS += \
-    manageminers.h
-
-SOURCES += \
-    manageminers.cpp
-
-FORMS += \
-    manageminers.ui
-
-HEADERS += \
-    loosejson.h
-
-SOURCES += \
-    loosejson.cpp
-
-HEADERS += \
-    settings.h
-
-SOURCES += \
-    settings.cpp
-
-FORMS += \
-    settings.ui
