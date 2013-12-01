@@ -331,7 +331,6 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	if(!miner.isRunning()) {
 		QVariantMap minerEntry = settings.value("miners").toMap().value(minerText).toMap();
 		int hostType = minerEntry.value("host").toInt();
-		qDebug() << hostType;
 		switch(hostType) {
 			case 0:
 				if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked()) {
@@ -523,7 +522,6 @@ void MainWindow::requestCurrencyExchangeRate()
 		currencyFrom = activeCurrency.toLower();
 	}
 
-	qDebug() << currencyFrom << currencyTo;
 	if(currencyFrom == "btc" && currencyTo.isEmpty()) {
 		emit exchangeRateChanged(1, L'฿');
 		return;
@@ -563,7 +561,7 @@ void MainWindow::exchangeRateReply() {
 	bool okay;
 	QVariantMap map = LooseJSON::parse(exchangeRateRequest->readAll()).toMap();
 	exchangeRate = map.value("ticker").toMap().value("buy").toFloat(&okay);
-	qDebug() << map.values();
+
 	if(!okay) {
 		qCritical() << "Failed to retreive exchange rate for requested currency...";
 		exchangeRate = -1;
@@ -588,9 +586,7 @@ void MainWindow::exchangeRateReply() {
 void MainWindow::accountDataReply(QVariantMap map)
 {
 	if(!map.isEmpty()) {
-		qDebug() << map.keys();
 		QStringList knownWorkers;
-
 
 		qreal totalRate = map.value("totalRate").toReal();
 		emit plotRateGraph(totalRate);
