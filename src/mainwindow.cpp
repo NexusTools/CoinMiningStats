@@ -328,6 +328,44 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	QString minerText = action ? action->text() : "";
 	settings.setValue("miner", minerText);
 
+	QVariantMap minerSettings = settings.value(action->text()).toMap();
+	int hostType = minerSettings.value("host").toInt();
+	qDebug() << action->text() << hostType << minerSettings.value("program").toString();
+	switch(hostType) {
+		case 0:
+			if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked())
+				actionLTC->setChecked(true);
+
+			actionBTC->setEnabled(false);
+			actionBTC->setChecked(false);
+			actionBTC_USD->setEnabled(false);
+			actionBTC_USD->setChecked(false);
+			actionBTC_EUR->setEnabled(false);
+			actionBTC_EUR->setChecked(false);
+
+			actionLTC->setEnabled(true);
+			actionLTC_USD->setEnabled(true);
+			actionLTC_EUR->setEnabled(true);
+		break;
+		case 1:
+			if(actionLTC->isChecked() || actionLTC_USD->isChecked() || actionLTC_EUR->isChecked())
+				actionBTC->setChecked(true);
+
+			actionBTC->setEnabled(true);
+			actionBTC_USD->setEnabled(true);
+			actionBTC_EUR->setEnabled(true);
+
+			actionLTC->setEnabled(false);
+			actionLTC->setChecked(false);
+			actionLTC_USD->setEnabled(false);
+			actionLTC_USD->setChecked(false);
+			actionLTC_EUR->setEnabled(false);
+			actionLTC_EUR->setChecked(false);
+		break;
+		case 2:
+		break;
+	}
+
 	if(!miner.isRunning()) {
 		actionMinerControl->setEnabled(!miner.isRunning() && !actionIdleControl->isChecked());
 		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
