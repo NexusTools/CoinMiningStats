@@ -328,9 +328,8 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	QString minerText = action ? action->text() : "";
 	settings.setValue("miner", minerText);
 
-	QVariantMap minerSettings = settings.value(action->text()).toMap();
+	QVariantMap minerSettings = settings.value("miners").toMap().value(minerText).toMap();
 	int hostType = minerSettings.value("host").toInt();
-	qDebug() << action->text() << hostType << minerSettings.value("program").toString();
 	switch(hostType) {
 		case 0:
 			if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked())
