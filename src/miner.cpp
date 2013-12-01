@@ -6,7 +6,7 @@
 Miner::Miner(QObject *parent) :
 	QObject(parent)
 {
-	apiTimer.setInterval(10000);
+	apiTimer.setInterval(30000);
 	connect(&minerProcess, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
 
 	startMinerTimer.setInterval(100);
@@ -57,38 +57,37 @@ void Miner::apiDataReply() {
 
 	if(apiHost == 0 || apiHost == 1) {
 		qDebug() << map.keys();
-		QStringList knownWorkers;
 
-		// Process Workers
 		if(map.contains("workers")) {
 			QVariantMap workersMap = map.value("workers").toMap();
-			QVariantMap::iterator i;
+			QVariantMap::iterator workerMapEntry;
 			returnableValues.insert("totalWorkers", workersMap.count());
 			int workerIndex = 0;
-			for (i = workersMap.begin(); i != workersMap.end(); ++i) {
-				QString workerName = i.key();
-				QVariantMap workerMap = i.value().toMap();
-				QVariantMap workerMapDisplayable;
-				workerMapDisplayable.insert("name", workerName);
-				knownWorkers.append(workerName);
+			for (workerMapEntry = workersMap.begin(); workerMapEntry != workersMap.end(); ++workerMapEntry) {
+				QString workerName = workerMapEntry.key();
+				QVariantMap workerEntry = workerMapEntry.value().toMap();
+
+				QVariantMap worker;
+				worker.insert("name", workerName);
 
 
-				workerMapDisplayable.insert("name", workerName);
+				worker.insert("name", workerName);
 				if(apiHost == 1)
-					totalRate += workerMap.value("hashrate").toFloat();
+					totalRate += workerEntry.value("hashrate").toFloat();
 
-				workerMapDisplayable.insert("alive", workerMap.value("alive").toBool());
-				workerMapDisplayable.insert("hashrate", QString("%1%2").arg(workerMap.value("hashrate").toString()).arg(apiHost == 0 ? "KH/s" : "MH/s"));
+				worker.insert("alive", workerEntry.value("alive").toBool());
+				worker.insert("hashrate", QString("%1%2").arg(workerEntry.value("hashrate").toString()).arg(apiHost == 0 ? "KH/s" : "MH/s"));
 				if(apiHost == 1) {
-					workerMapDisplayable.insert("shares", workerMap.value("shares").toString());
-					workerMapDisplayable.insert("score", workerMap.value("score").toString());
+					worker.insert("shares", workerEntry.value("shares").toString());
+					worker.insert("score", workerEntry.value("score").toString());
 				}
-				returnableValues.insert(QString("worker%1").arg(workerIndex), workerMapDisplayable);
+				returnableValues.insert(QString("worker%1").arg(workerIndex), worker);
 				workerIndex++;
 			}
 		}
 		if(apiHost == 0)
-			totalRate = returnableValues.value("total_hashrate").toFloat();
+			totalRate = map.value("total_hashrate").toFloat();
+		returnableValues.insert("totalRate", totalRate);
 		returnableValues.insert("estimatedReward", map.value(apiHost == 1 ? "estimated_reward" : "round_estimate").toReal());
 		returnableValues.insert("confirmedReward", map.value(apiHost == 1 ? "confirmed_reward" : "confirmed_rewards").toReal());
 		if(apiHost == 1)

@@ -504,23 +504,20 @@ void MainWindow::exchangeRateReply() {
 
 void MainWindow::accountDataReply(QVariantMap map)
 {
-	qreal totalRate = 0;
 	if(!map.isEmpty()) {
 		qDebug() << map.keys();
 		QStringList knownWorkers;
 
 		emit receivedAccountData(map);
 
+		qreal totalRate = map.value("totalRate").toReal();
 		// Process Workers
 		if(map.contains("workers")) {
-			QVariantMap workersMap = map.value("workers").toMap();
-			QVariantMap::iterator i;
-			for (i = workersMap.begin(); i != workersMap.end(); ++i) {
-				QString workerName = i.key();
-				QVariantMap workerMap = i.value().toMap();
+			int numWorkers = map.value("workers").toInt();
+			for(int i = 0; i < numWorkers; i++) {
+				QVariantMap workerMap = map.value(QString("worker%1").arg(i)).toMap();
+				QString workerName = workerMap.value("name").toString();
 				knownWorkers.append(workerName);
-
-				totalRate += workerMap.value("hashrate").toFloat();
 
 				int row = -1;
 				for(int a=0; a<workers->rowCount(); a++) {
@@ -539,7 +536,7 @@ void MainWindow::accountDataReply(QVariantMap map)
 				workers->item(row, 0)->setIcon(style()->standardIcon(workerMap.value("alive").toBool()
 													? QStyle::SP_MediaPlay : QStyle::SP_MediaStop));
 
-				workers->setItem(row, 1, new QTableWidgetItem(QString("%1MH/s").arg(workerMap.value("hashrate").toString())));
+				workers->setItem(row, 1, new QTableWidgetItem(workerMap.value("hashrate").toString()));
 				workers->setItem(row, 2, new QTableWidgetItem(workerMap.value("shares").toString()));
 				workers->setItem(row, 3, new QTableWidgetItem(workerMap.value("score").toString()));
 			}
@@ -553,9 +550,9 @@ void MainWindow::accountDataReply(QVariantMap map)
 
 		workers->resizeColumnsToContents();
 
-		ew = map.value("estimated_reward").toReal();
-		cw = map.value("confirmed_reward").toReal();
-		uw = map.value("unconfirmed_reward").toReal();
+		ew = map.value("estimatedReward").toReal();
+		cw = map.value("confirmedReward").toReal();
+		uw = map.value("unconfirmedReward").toReal();
 		workers->horizontalHeader()->setVisible(true);
 		// Set Labels
 		workers_rate->setValue(totalRate);
