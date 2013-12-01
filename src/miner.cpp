@@ -87,6 +87,7 @@ void Miner::apiDataReply() {
 		}
 		if(apiHost == 0)
 			totalRate = map.value("total_hashrate").toFloat();
+		returnableValues.insert("hashType", apiHost);
 		returnableValues.insert("totalRate", totalRate);
 		returnableValues.insert("estimatedReward", map.value(apiHost == 1 ? "estimated_reward" : "round_estimate").toReal());
 		returnableValues.insert("confirmedReward", map.value(apiHost == 1 ? "confirmed_reward" : "confirmed_rewards").toReal());

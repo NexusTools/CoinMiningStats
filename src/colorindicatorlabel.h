@@ -6,39 +6,47 @@
 
 class ColorIndicatorLabel : public QLabel
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    enum Mode {
-        Other,
-        BitCoins,
-        HashRate
-    };
+	enum Mode {
+		Other,
+		BitCoins,
+		HashRate
+	};
 
-    explicit ColorIndicatorLabel(QWidget *parent);
+	enum BaseSuffix {
+		None,
+		Kilohash,
+		Megahash,
+		Gigahash,
+		Terahash
+	};
 
-    inline qreal value() const{return v;}
-    inline void setUpColor(Qt::GlobalColor c){upColor = c;}
-    inline void setDownColor(Qt::GlobalColor c){downColor = c;}
-    inline void setMode(Mode n){m=n;}
+	explicit ColorIndicatorLabel(QWidget *parent);
 
-    void paintEvent(QPaintEvent *);
+	inline qreal value() const{return v;}
+	inline void setUpColor(Qt::GlobalColor c){upColor = c;}
+	inline void setDownColor(Qt::GlobalColor c){downColor = c;}
+	inline void setMode(Mode n){m=n;}
+
+	void paintEvent(QPaintEvent *);
 
 public slots:
-    void updateColor();
-    void setInverted(bool i);
+	void updateColor();
+	void setInverted(bool i);
 	void exchangeRateChanged(float e, QChar c);
-    void setValue(qreal r);
+	void setValue(qreal r, BaseSuffix baseSuffix=None);
 
 private:
-    Qt::GlobalColor upColor, downColor;
-    qreal r, g, b;
-    bool inverted;
+	Qt::GlobalColor upColor, downColor;
+	qreal r, g, b;
+	bool inverted;
 
-    QTimer updateTimer;
-    qreal v, dv;
-    float e;
+	QTimer updateTimer;
+	qreal v, dv;
+	float e;
 	QChar c;
-    Mode m;
+	Mode m;
 };
 
 #endif // COLORINDICATORLABEL_H

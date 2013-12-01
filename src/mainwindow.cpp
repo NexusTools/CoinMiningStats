@@ -555,7 +555,7 @@ void MainWindow::accountDataReply(QVariantMap map)
 		uw = map.value("unconfirmedReward").toReal();
 		workers->horizontalHeader()->setVisible(true);
 		// Set Labels
-		workers_rate->setValue(totalRate);
+		workers_rate->setValue(totalRate, map.value("hashType").toInt() == 1 ? ColorIndicatorLabel::Megahash : ColorIndicatorLabel::Kilohash);
 		if(trayHashRate)
 			trayHashRate->setText(QString("HashRate: %1").arg(workers_rate->text()));
 
