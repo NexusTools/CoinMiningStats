@@ -508,11 +508,16 @@ void MainWindow::exchangeRateReply() {
 		exchangeRate = -1;
 	} else {
 		qDebug() << "Exchange rate for BTC to" << activeCurrency << "is" << exchangeRate;
-		QChar s;
-		if(activeCurrency == "eur")
-			s = L'£';
-		else
-			s = '$';
+		QChar s = '$';
+
+		if(activeCurrency.indexOf("->") != -1) {
+			QStringList tmp = activeCurrency.split("->");
+			QString currencyTo = tmp.at(1).toLower();
+			if(currencyTo == "eur") {
+				s = L'£';
+			}
+		}
+
 		emit exchangeRateChanged(exchangeRate, s);
 	}
 

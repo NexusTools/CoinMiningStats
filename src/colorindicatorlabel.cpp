@@ -12,7 +12,7 @@ ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
 
 	currentMode = Other;
 	dv = 0;
-	displayValue = 1;
+	displayType = 1;
 	currentValue = 0;
 
 	r = 0;
@@ -77,16 +77,11 @@ void ColorIndicatorLabel::setInverted(bool inverted)
 }
 
 void ColorIndicatorLabel::exchangeRateChanged(float displayValue, QChar displayPrefix) {
-	this->displayValue = displayValue;
+	this->displayType = displayValue;
 	this->displayPrefix = displayPrefix;
 	if(currentMode == Coins) {
-
-		if(displayValue == 1)
-			setText(QString::number(currentValue, 'f', 8));
-		else
-			setText(QString("%1%2").arg(displayPrefix).arg(QString::number(currentValue * displayValue, 'f', 2)));
+		setText(QString("%1%2").arg(displayPrefix).arg(QString::number(currentValue * displayValue, 'f', displayValue == 1 ? 8 : 2)));
 	}
-
 }
 
 void ColorIndicatorLabel::setValue(qreal newValue, BaseSuffix baseSuffix){
@@ -111,13 +106,10 @@ void ColorIndicatorLabel::setValue(qreal newValue, BaseSuffix baseSuffix){
 
 	this->currentValue = newValue;
 
-	switch(currentMode){
+	switch(currentMode) {
 		case Coins:
-			if(displayValue == 1)
-				setText(QString::number(newValue, 'f', 8));
-			else
-				setText(QString("%1%2").arg(displayPrefix).arg(QString::number(newValue * displayValue, 'f', 2)));
-			break;
+			setText(QString("%1%2").arg(displayPrefix).arg(QString::number(newValue * displayType, 'f', displayType == 1 ? 8 : 2)));
+		break;
 
 		case HashRate:
 		{

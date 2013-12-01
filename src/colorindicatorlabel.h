@@ -34,7 +34,7 @@ public:
 public slots:
 	void updateColor();
 	void setInverted(bool inverted);
-	void exchangeRateChanged(float displayValue, QChar displayPrefix);
+	void exchangeRateChanged(float displayType, QChar displayPrefix);
 	void setValue(qreal r, BaseSuffix baseSuffix=None);
 
 private:
@@ -44,7 +44,7 @@ private:
 
 	QTimer updateTimer;
 	qreal currentValue, dv;
-	float displayValue;
+	float displayType;
 	QChar displayPrefix;
 	Mode currentMode;
 };
