@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "manageminers.h"
 #include "graph.h"
+#include "settings.h"
+#include "miner.h"
 #include "loosejson.h"
 
 #include <stdlib.h>
@@ -12,15 +14,12 @@
 #include <QDebug>
 #include <QThread>
 
-QProcess MainWindow::miner;
+Miner MainWindow::miner;
+QNetworkAccessManager MainWindow::accessMan;
 
 void MainWindow::shutdown(){
-	if(miner.state() != QProcess::NotRunning) {
-		miner.terminate();
-		qDebug() << "Waiting for Miner to Exit...";
-		miner.waitForFinished(1500);
-		if(miner.state() != QProcess::NotRunning)
-			miner.kill();
+	if(miner.isRunning()) {
+		miner.stop();
 	}
 	qDebug() << "Exiting...";
 	_Exit(0);
@@ -53,51 +52,36 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), estimated, SLOT(exchangeRateChanged(float,QChar)));
 	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), potential, SLOT(exchangeRateChanged(float,QChar)));
 
+
+
 	updateExchangeRate.setSingleShot(true);
-	updateExchangeRate.setInterval(50000);
+	updateExchangeRate.setInterval(60000);
 	connect(&updateExchangeRate, SIGNAL(timeout()), this, SLOT(requestCurrencyExchangeRate()));
 
-	updateAccountDataTimer.setSingleShot(true);
-	updateAccountDataTimer.setInterval(10000);
-	connect(&updateAccountDataTimer, SIGNAL(timeout()), this, SLOT(requestAccountDataUpdate()));
-
-	updateBlockInfoTimer.setSingleShot(true);
-	updateBlockInfoTimer.setInterval(30000);
-	connect(&updateBlockInfoTimer, SIGNAL(timeout()), this, SLOT(requestBlockInfoUpdate()));
-
 	exchangeRateRequest = 0;
-	accountDataRequest = 0;
 	blockInfoRequest = 0;
-	poolStatsRequest = 0;
 	widgetMode = false;
 
-	killMiner.setInterval(1500);
-	idleWatcher.setInterval(50);
+	idleWatcher.setInterval(500);
 
-	apiKey = settings.value("slush_api").toString();
 	minersUpdated(settings.value("miners").toMap(), false);
-
-	if(apiKey.isNull())
-		changeApiToken();
-	else
-		requestAccountDataUpdate();
 
 	exchangeRate = 1;
 	requestBlockInfoUpdate();
-	qDebug() << "Using API Key" << apiKey;
 	connect(&idleWatcher, SIGNAL(timeout()), this, SLOT(checkIdle()));
 	connect(actionIdleControl, SIGNAL(triggered()), this, SLOT(idleControlUpdated()));
 	connect(actionQuit, SIGNAL(triggered()), qApp, SLOT(quit()));
 	connect(graphBtn, SIGNAL(clicked()), this, SLOT(showGraph()));
 	connect(tglWidget, SIGNAL(clicked()), this, SLOT(toggleWidget()));
-	connect(actionManage_Miners, SIGNAL(triggered()), this, SLOT(showMinerManagement()));
+	connect(actionSettings, SIGNAL(triggered()), this, SLOT(showSettings()));
+	connect(actionManageMiners, SIGNAL(triggered()), this, SLOT(showMinerManagement()));
 	connect(minerGroup, SIGNAL(triggered(QAction*)), this, SLOT(updateSelectedMiner(QAction*)));
-	connect(actionSet_API_Token, SIGNAL(triggered()), this, SLOT(changeApiToken()));
 	connect(actionMinerControl, SIGNAL(triggered()), this, SLOT(toggleMiner()));
-	connect(&killMiner, SIGNAL(timeout()), &miner, SLOT(kill()));
-	connect(&miner, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
-	connect(&miner, SIGNAL(readyReadStandardOutput()), this, SLOT(passStdOut()));
-	connect(&miner, SIGNAL(readyReadStandardError()), this, SLOT(passStdErr()));
+
+
+	connect(&miner, SIGNAL(started()), this, SLOT(minerStarted()));
+	connect(&miner, SIGNAL(stopped()), this, SLOT(minerStopped()));
+	connect(&miner, SIGNAL(apiDataReceived(QVariantMap)), this, SLOT(accountDataReply(QVariantMap)));
 
 	QAction* active = 0;
 	activeCurrency = settings.value("display_currency", "BTC").toString();
@@ -115,6 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	dragPoint = QPoint(-1, -1);
 	miners = 0;
 	graph = 0;
+	mainSettings = 0;
 
 	trayIcon->setIcon(qApp->windowIcon());
 	if(!QSystemTrayIcon::isSystemTrayAvailable()) {
@@ -130,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
 		connect(windowVisibilityAction, SIGNAL(triggered()), this, SLOT(toggleVisible()));
 		menu->addAction(windowVisibilityAction);
 
-		trayHashRate = new QAction("HashRate: 0MH/s", menu);
+		trayHashRate = new QAction("HashRate: N/A", menu);
 		trayHashRate->setDisabled(true);
 		menu->addAction(trayHashRate);
 
@@ -138,16 +123,13 @@ MainWindow::MainWindow(QWidget *parent) :
 		menu->addMenu(menuMining);
 		menu->addSeparator();
 
-		QAction* action = new QAction("Set API Token", menu);
-		connect(action, SIGNAL(triggered()), this, SLOT(changeApiToken()));
-		menu->addAction(action);
+		QAction* settingsAction = new QAction("Settings", menu);
+		connect(settingsAction, SIGNAL(triggered()), this, SLOT(showSettings()));
+		menu->addAction(settingsAction);
 
-		action = new QAction("Settings", menu);
-		menu->addAction(action);
-
-		action = new QAction("Quit", menu);
-		connect(action, SIGNAL(triggered()), qApp, SLOT(quit()));
-		menu->addAction(action);
+		QAction* quitAction = new QAction("Quit", menu);
+		connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+		menu->addAction(quitAction);
 
 		trayIcon->setToolTip("No Miner Running");
 		trayIcon->setContextMenu(menu);
@@ -164,6 +146,30 @@ MainWindow::MainWindow(QWidget *parent) :
 		actionMinerControl->setDisabled(true);
 		actionIdleControl->setChecked(true);
 	}
+}
+
+void MainWindow::showSettings() {
+	if(mainSettings) {
+		mainSettings->setFocus();
+		return;
+	}
+
+	mainSettings = new Settings(this);
+	//mainSettings->setMinerData(settings.value("mainSettings"));
+	//connect(mainSettings, SIGNAL(dataUpdated(QVariantMap)), this, SLOT(minersUpdated(QVariantMap)));
+	connect(mainSettings, SIGNAL(destroyed()), this, SLOT(mainSettingsDestroyed()));
+}
+
+void MainWindow::minerStarted() {
+	showMessage("Started Miner", "The mining software is now running.");
+	actionMinerControl->setEnabled(!actionIdleControl->isChecked());
+	trayIcon->setToolTip("Miner Started");
+}
+
+void MainWindow::minerStopped() {
+	showMessage("Stopped Miner", "The mining software has stopped running.");
+	updateSelectedMiner(minerGroup->checkedAction());
+	trayIcon->setToolTip("Miner Stopped");
 }
 
 void MainWindow::focusInEvent(QFocusEvent *)
@@ -216,22 +222,6 @@ void MainWindow::mouseReleaseEvent(QMouseEvent * m){
 			dragPoint = QPoint(-1, -1);
 			releaseMouse();
 		}
-	}
-}
-
-void MainWindow::changeApiToken()
-{
-	QInputDialog inputDiag(this);
-	inputDiag.setInputMode(QInputDialog::TextInput);
-	inputDiag.setLabelText("Slush's Pool API Token");
-	inputDiag.setTextValue(settings.value("slush_api").toString());
-	inputDiag.exec();
-	apiKey = inputDiag.textValue();
-
-	if(!apiKey.isNull()) {
-		requestPoolStatsUpdate();
-		requestAccountDataUpdate();
-		settings.setValue("slush_api", apiKey);
 	}
 }
 
@@ -289,12 +279,20 @@ void MainWindow::finishTransform(){
 
 void MainWindow::minerManagementDestroyed()
 {
+	miners->deleteLater();
 	miners = 0;
 }
 
 void MainWindow::graphDestroyed()
 {
+	graph->deleteLater();
 	graph = 0;
+}
+
+void MainWindow::mainSettingsDestroyed()
+{
+	mainSettings->deleteLater();
+	mainSettings = 0;
 }
 
 void MainWindow::minersUpdated(QVariantMap data, bool store){
@@ -304,9 +302,9 @@ void MainWindow::minersUpdated(QVariantMap data, bool store){
 	QAction* selMiner = 0;
 	QStringList miners = data.keys();
 	if(miners.isEmpty())
-		menuMining->addAction(actionNo_Miners_Configured);
+		menuMining->addAction(actionNoMinersConfigured);
 	else {
-		menuMining->removeAction(actionNo_Miners_Configured);
+		menuMining->removeAction(actionNoMinersConfigured);
 		foreach(QString miner, miners) {
 			QAction* action = new QAction(miner, menuMining);
 			action->setCheckable(true);
@@ -319,7 +317,6 @@ void MainWindow::minersUpdated(QVariantMap data, bool store){
 	if(selMiner)
 		selMiner->setChecked(true);
 	updateSelectedMiner(selMiner);
-
 	if(store) {
 		settings.setValue("miners", data);
 		settings.sync();
@@ -330,8 +327,9 @@ void MainWindow::updateSelectedMiner(QAction* action)
 {
 	QString minerText = action ? action->text() : "";
 	settings.setValue("miner", minerText);
-	if(miner.state() == QProcess::NotRunning) {
-		actionMinerControl->setEnabled(!isMinerBusy() && !actionIdleControl->isChecked());
+
+	if(!miner.isRunning()) {
+		actionMinerControl->setEnabled(!miner.isRunning() && !actionIdleControl->isChecked());
 		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
 	}
 
@@ -339,23 +337,17 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	actionIdleControl->setEnabled(action);
 }
 
-bool MainWindow::isMinerBusy()
-{
-	return miner.state() == QProcess::Starting || killMiner.isActive();
-}
-
 void MainWindow::checkIdle()
 {
 	QPoint mPos = QCursor::pos();
-	if(mPos != lastMousePos) {
+	if(miner.isRunning() && mPos != lastMousePos) {
 		lastMouseMove.start();
-		lastMousePos = mPos;
-		stopMiner();
-	} else if(lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000) {
+		miner.stop();
+	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000) {
 		lastMouseMove.start();
-		if(miner.state() == QProcess::NotRunning)
-			startMiner();
+		miner.start();
 	}
+	lastMousePos = mPos;
 }
 
 void MainWindow::idleControlUpdated()
@@ -366,21 +358,13 @@ void MainWindow::idleControlUpdated()
 		actionMinerControl->setEnabled(false);
 	} else {
 		idleWatcher.stop();
-		actionMinerControl->setEnabled(!isMinerBusy());
+		actionMinerControl->setEnabled(!miner.isRunning());
 	}
-}
-
-void MainWindow::passStdOut(){
-	qDebug() << miner.readAllStandardOutput().data();
-}
-
-void MainWindow::passStdErr(){
-	qDebug() << miner.readAllStandardError().data();
 }
 
 void MainWindow::showMessage(QString title, QString message)
 {
-	qWarning() << "Showing Notification" << title << message;
+	qDebug() << "Showing Notification" << title << message;
 #ifdef DBUS_NOTIFICATIONS
 	if(DBusNotificationInterface.isValid()) {
 		qDebug() << "Using DBus Notifications";
@@ -405,77 +389,30 @@ void MainWindow::showMessage(QString title, QString message)
 		qWarning() << "No Qt Notification Fallback";
 }
 
-void MainWindow::minerStateChanged(QProcess::ProcessState state)
-{
-	qDebug() << "Miner State Changed" << state;
-	switch(state) {
-	default:
-		return;
-
-	case QProcess::NotRunning:
-		if(killMiner.isActive()) {
-			showMessage("Miner Stopped", "The mining software has stopped running.");
-			killMiner.stop();
-		}
-		updateSelectedMiner(minerGroup->checkedAction());
-		trayIcon->setToolTip("Miner Stopped");
-		break;
-
-	case QProcess::Running:
-		actionMinerControl->setEnabled(!actionIdleControl->isChecked());
-		showMessage("Miner Running", "The mining software is now running.");
-		trayIcon->setToolTip("Miner Running");
-		break;
-	}
-}
-
 void MainWindow::stopMiner(){
-	if(miner.state() != QProcess::Running || killMiner.isActive())
-		return;
-
-	showMessage("Stopping Miner", "The mining software is being stopped.");
-	miner.terminate();
-	killMiner.start();
+	showMessage("Stopping Miner", "The mining software is being stopped...");
+	miner.stop();
 	actionMinerControl->setEnabled(false);
 }
 
-void MainWindow::toggleMiner(){
-	switch(miner.state()){
-	default:
+void MainWindow::startMiner(){
+	QAction* active = minerGroup->checkedAction();
+	if(!active)
 		return;
+	QString name = active->text();
 
-	case QProcess::Running:
-		stopMiner();
-		break;
-
-	case QProcess::NotRunning:
-		startMiner();
-		break;
-	}
-}
-
-void MainWindow::startMiner(QString name){
-	if(miner.state() != QProcess::NotRunning) {
-		stopMiner();
-		return;
-	}
-
-	if(name.isEmpty()) {
-		QAction* active = minerGroup->checkedAction();
-		if(!active)
-			return;
-		name = active->text();
-	}
 
 	QVariantMap minerEntry = settings.value("miners").toMap().value(name).toMap();
 	if(minerEntry.isEmpty()) {
-		qWarning() << "Attempted to Start Invalid Miner" << name;
-		return;
+			qWarning() << "Attempted to Start Invalid Miner" << name;
+			return;
 	}
 
 	actionMinerControl->setEnabled(false);
 	actionMinerControl->setText(QString("Stop `%1`").arg(name));
-	miner.start(minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
+
+	showMessage("Starting Miner", "The mining software is being started...");
+	miner.start(name, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
 }
 
 void MainWindow::showMinerManagement(){
@@ -525,18 +462,6 @@ void MainWindow::requestCurrencyExchangeRate()
 	connect(exchangeRateRequest, SIGNAL(finished()), this, SLOT(exchangeRateReply()));
 }
 
-void MainWindow::requestAccountDataUpdate()
-{
-	updateAccountDataTimer.stop();
-	qDebug() << "Requesting Account Data Update";
-	if(apiKey.isEmpty())
-		return;
-	if(accountDataRequest)
-		accountDataRequest->deleteLater();
-	accountDataRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey))));
-	connect(accountDataRequest, SIGNAL(finished()), this, SLOT(accountDataReply()));
-}
-
 void MainWindow::requestBlockInfoUpdate()
 {
 	updateBlockInfoTimer.stop();
@@ -545,16 +470,6 @@ void MainWindow::requestBlockInfoUpdate()
 		blockInfoRequest->deleteLater();
 	blockInfoRequest = accessMan.get(QNetworkRequest(QUrl("http://blockchain.info/latestblock")));
 	connect(blockInfoRequest, SIGNAL(finished()), this, SLOT(blockInfoReply()));
-}
-
-void MainWindow::requestPoolStatsUpdate()
-{
-	qDebug() << "Requesting Pool Statistics Update";
-	if(poolStatsRequest)
-		poolStatsRequest->deleteLater();
-
-	poolStatsRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://mining.bitcoin.cz/stats/json/%1").arg(apiKey))));
-	connect(poolStatsRequest, SIGNAL(finished()), this, SLOT(poolStatsReply()));
 }
 
 void MainWindow::exchangeRateReply() {
@@ -587,25 +502,9 @@ void MainWindow::exchangeRateReply() {
 	exchangeRateRequest = 0;
 }
 
-void MainWindow::accountDataReply()
+void MainWindow::accountDataReply(QVariantMap map)
 {
-	QTimer::singleShot(0, accountDataRequest, SLOT(deleteLater()));
-	updateAccountDataTimer.start();
-	if(accountDataRequest->error()) {
-		qWarning() << "Request Failed" << accountDataRequest->errorString();
-
-		workers->horizontalHeader()->setVisible(false);
-		workers->clearContents();
-		workers->insertRow(0);
-		workers->setItem(0, 0, new QTableWidgetItem(QString("Connection Issue: %1").arg(accountDataRequest->errorString())));
-		workers->resizeColumnsToContents();
-
-		accountDataRequest = 0;
-		return;
-	}
-
 	qreal totalRate = 0;
-	QVariantMap map = LooseJSON::parse(accountDataRequest->readAll()).toMap();
 	if(!map.isEmpty()) {
 		qDebug() << map.keys();
 		QStringList knownWorkers;
@@ -669,54 +568,6 @@ void MainWindow::accountDataReply()
 		potential->setValue(cw + uw);
 	} else
 		qWarning() << "Bad Account Data Reply";
-
-
-	accountDataRequest = 0;
-}
-
-void MainWindow::poolStatsReply()
-{
-	QTimer::singleShot(0, poolStatsRequest, SLOT(deleteLater()));
-	if(poolStatsRequest->error()) {
-		qWarning() << "Pool Statistics Request Failed" << poolStatsRequest->errorString();
-
-		poolStatsRequest = 0;
-		return;
-	}
-
-	QVariantMap map = LooseJSON::parse("(" + poolStatsRequest->readAll() + ")").toMap();
-
-	if(!map.isEmpty()) {
-		qreal reward = 0;
-		emit receivedPoolStatsData(map);
-		int leastConfirmations = -1;
-		int unconfirmedblocks = 0;
-		if(map.contains("blocks")) {
-			QVariantMap blocksMap = map.value("blocks").toMap();
-			QVariantMap::iterator i;
-			for (i = blocksMap.begin(); i != blocksMap.end(); ++i) {
-				QVariantMap blockMap = i.value().toMap();
-				if(blockMap.value("reward").toReal() > 0) {
-					int confirmationsLeft = 100 - blockMap.value("confirmations").toInt();
-					if(confirmationsLeft > 0) {
-						if((leastConfirmations == -1 || confirmationsLeft < leastConfirmations)) {
-							leastConfirmations = confirmationsLeft;
-							reward = blockMap.value("reward").toReal();
-						}
-						unconfirmedblocks++;
-					}
-				}
-			}
-		}
-
-		unconfirmed_blocks->setValue(unconfirmedblocks);
-		next_reward->setValue(reward);
-		confirmations_left->setValue(leastConfirmations);
-	} else {
-		qWarning() << "Bad Pool Stats Reply";
-	}
-
-	poolStatsRequest = 0;
 }
 
 void MainWindow::blockInfoReply()
@@ -738,7 +589,6 @@ void MainWindow::blockInfoReply()
 			uint height = map.value("height").toUInt();
 			if(height > blockchain_height->value()) {
 				blockchain_height->setValue(height);
-				requestPoolStatsUpdate();
 			}
 		}
 	} else
@@ -746,6 +596,13 @@ void MainWindow::blockInfoReply()
 
 
 	blockInfoRequest = 0;
+}
+
+void MainWindow::toggleMiner() {
+	if(miner.isRunning())
+		stopMiner();
+	else
+		startMiner();
 }
 
 void MainWindow::changeEvent(QEvent *e)

@@ -128,6 +128,21 @@
                 <height>0</height>
                </size>
               </property>
+              <item>
+               <property name="text">
+                <string>WeMineLTC</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Slush's Pool</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string extracomment="Set a custom pool URL.">Custom</string>
+               </property>
+              </item>
              </widget>
             </item>
             <item>

@@ -255,7 +255,16 @@
     <item>
      <widget class="QWidget" name="advanced" native="true">
       <layout class="QVBoxLayout" name="verticalLayout_13">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <item>
@@ -378,16 +387,15 @@
      <x>0</x>
      <y>0</y>
      <width>465</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuBitMinerStats">
     <property name="title">
      <string>BitMinerStats</string>
     </property>
-    <addaction name="actionSet_API_Token"/>
-    <addaction name="actionExport_Statistics"/>
-    <addaction name="actionRestore_Database"/>
+    <addaction name="actionExportStatistics"/>
+    <addaction name="actionRestoreDatabase"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="actionQuit"/>
@@ -408,9 +416,9 @@
     </property>
     <addaction name="actionMinerControl"/>
     <addaction name="actionIdleControl"/>
-    <addaction name="actionManage_Miners"/>
+    <addaction name="actionManageMiners"/>
     <addaction name="separator"/>
-    <addaction name="actionNo_Miners_Configured"/>
+    <addaction name="actionNoMinersConfigured"/>
    </widget>
    <widget class="QMenu" name="menuDisplay">
     <property name="title">
@@ -432,7 +440,7 @@
    <addaction name="menuMining"/>
    <addaction name="menuAbout"/>
   </widget>
-  <action name="actionExport_Statistics">
+  <action name="actionExportStatistics">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -440,7 +448,7 @@
     <string>Backup Statistics</string>
    </property>
   </action>
-  <action name="actionRestore_Database">
+  <action name="actionRestoreDatabase">
    <property name="enabled">
     <bool>false</bool>
    </property>
@@ -496,17 +504,12 @@
     <enum>QAction::AboutQtRole</enum>
    </property>
   </action>
-  <action name="actionSet_API_Token">
-   <property name="text">
-    <string>Set API Token</string>
-   </property>
-  </action>
-  <action name="actionManage_Miners">
+  <action name="actionManageMiners">
    <property name="text">
     <string>Manage Miners</string>
    </property>
   </action>
-  <action name="actionNo_Miners_Configured">
+  <action name="actionNoMinersConfigured">
    <property name="enabled">
     <bool>false</bool>
    </property>
