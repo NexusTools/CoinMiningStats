@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(&miner, SIGNAL(apiDataReceived(QVariantMap)), this, SLOT(accountDataReply(QVariantMap)));
 
 	QAction* active = 0;
-	activeCurrency = settings.value("display_currency", "BTC").toString();
+	activeCurrency = settings.value("display_currency", "btc").toString();
 	foreach(QAction* action, menuCurrency->actions()) {
 		if(activeCurrency == action->text())
 			active = action;
@@ -451,14 +451,30 @@ void MainWindow::requestCurrencyExchangeRate()
 
 	if(exchangeRateRequest)
 		exchangeRateRequest->deleteLater();
+	QString currencyFrom;
+	QString currencyTo;
 
-	if(activeCurrency == "BTC") {
-		emit exchangeRateChanged(1, 'B');
-		return; // Nothing to do
+	if(activeCurrency.indexOf("->") != -1) {
+		QStringList tmp = activeCurrency.split("->");
+		currencyFrom = tmp.at(0).toLower();
+		currencyTo = tmp.at(1).toLower();
+	} else {
+		currencyFrom = activeCurrency.toLower();
+	}
+
+	qDebug() << currencyFrom << currencyTo;
+	if(currencyFrom == "btc" && currencyTo.isEmpty()) {
+		emit exchangeRateChanged(1, L'฿');
+		return;
+	}
+
+	if(currencyFrom == "ltc" && currencyTo.isEmpty()) {
+		emit exchangeRateChanged(1, L'Ł');
+		return;
 	}
 
 	exchangeRate = -1;
-	exchangeRateRequest = accessMan.get(QNetworkRequest(QUrl(QString("http://data.mtgox.com/api/2/BTC%1/money/ticker_fast").arg(activeCurrency))));
+	exchangeRateRequest = accessMan.get(QNetworkRequest(QUrl(QString("https://btc-e.com/api/2/%1_%2/ticker").arg(currencyFrom).arg(currencyTo))));
 	connect(exchangeRateRequest, SIGNAL(finished()), this, SLOT(exchangeRateReply()));
 }
 
@@ -485,14 +501,15 @@ void MainWindow::exchangeRateReply() {
 
 	bool okay;
 	QVariantMap map = LooseJSON::parse(exchangeRateRequest->readAll()).toMap();
-	exchangeRate = map.value("data").toMap().value("buy").toMap().value("value").toFloat(&okay);
+	exchangeRate = map.value("ticker").toMap().value("buy").toFloat(&okay);
+	qDebug() << map.values();
 	if(!okay) {
 		qCritical() << "Failed to retreive exchange rate for requested currency...";
 		exchangeRate = -1;
 	} else {
 		qDebug() << "Exchange rate for BTC to" << activeCurrency << "is" << exchangeRate;
 		QChar s;
-		if(activeCurrency == "EUR")
+		if(activeCurrency == "eur")
 			s = L'£';
 		else
 			s = '$';

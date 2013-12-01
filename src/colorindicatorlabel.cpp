@@ -122,8 +122,10 @@ void ColorIndicatorLabel::setValue(qreal v, BaseSuffix baseSuffix){
 		case HashRate:
 		{
 			qreal hr = v;
-			char suffix;
+			char suffix = QChar::Null;
 			switch(baseSuffix) {
+				case None:
+				break;
 				case Kilohash:
 					suffix = 'K';
 				break;

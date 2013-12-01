@@ -429,9 +429,12 @@
       <string>Currency</string>
      </property>
      <addaction name="actionBTC"/>
-     <addaction name="actionUSD"/>
-     <addaction name="actionCAD"/>
-     <addaction name="actionEUR"/>
+     <addaction name="actionBTC_USD"/>
+     <addaction name="actionBTC_EUR"/>
+     <addaction name="separator"/>
+     <addaction name="actionLTC"/>
+     <addaction name="actionLTC_USD"/>
+     <addaction name="actionLTC_EUR"/>
     </widget>
     <addaction name="menuCurrency"/>
    </widget>
@@ -544,28 +547,44 @@
     <string>BTC</string>
    </property>
   </action>
-  <action name="actionUSD">
+  <action name="actionBTC_USD">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>USD</string>
+    <string>BTC-&gt;USD</string>
    </property>
   </action>
-  <action name="actionCAD">
+  <action name="actionBTC_EUR">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>CAD</string>
+    <string>BTC-&gt;EUR</string>
    </property>
   </action>
-  <action name="actionEUR">
+  <action name="actionLTC">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>EUR</string>
+    <string>LTC</string>
+   </property>
+  </action>
+  <action name="actionLTC_USD">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LTC-&gt;USD</string>
+   </property>
+  </action>
+  <action name="actionLTC_EUR">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>LTC-&gt;EUR</string>
    </property>
   </action>
  </widget>
