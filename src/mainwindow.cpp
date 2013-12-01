@@ -39,11 +39,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	trayIcon = new QSystemTrayIcon(this);
 	minerGroup = new QActionGroup(menuMining);
-	confirmed->setMode(ColorIndicatorLabel::BitCoins);
-	unconfirmed->setMode(ColorIndicatorLabel::BitCoins);
-	next_reward->setMode(ColorIndicatorLabel::BitCoins);
-	estimated->setMode(ColorIndicatorLabel::BitCoins);
-	potential->setMode(ColorIndicatorLabel::BitCoins);
+	confirmed->setMode(ColorIndicatorLabel::Coins);
+	unconfirmed->setMode(ColorIndicatorLabel::Coins);
+	next_reward->setMode(ColorIndicatorLabel::Coins);
+	estimated->setMode(ColorIndicatorLabel::Coins);
+	potential->setMode(ColorIndicatorLabel::Coins);
 	workers_rate->setMode(ColorIndicatorLabel::HashRate);
 
 	connect(this, SIGNAL(exchangeRateChanged(float,QChar)), confirmed, SLOT(exchangeRateChanged(float,QChar)));
@@ -84,7 +84,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(&miner, SIGNAL(apiDataReceived(QVariantMap)), this, SLOT(accountDataReply(QVariantMap)));
 
 	QAction* active = 0;
-	activeCurrency = settings.value("display_currency", "btc").toString();
+	activeCurrency = settings.value("display_currency", "BTC").toString();
 	foreach(QAction* action, menuCurrency->actions()) {
 		if(activeCurrency == action->text())
 			active = action;

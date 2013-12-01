@@ -10,10 +10,10 @@ ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
 	if(parent->window())
 		connect(parent->window(), SIGNAL(invertChanged(bool)), this, SLOT(setInverted(bool)));
 
-	m = Other;
+	currentMode = Other;
 	dv = 0;
-	e = 1;
-	v = 0;
+	displayValue = 1;
+	currentValue = 0;
 
 	r = 0;
 	g = 0;
@@ -62,12 +62,12 @@ void ColorIndicatorLabel::updateColor(){
 	repaint();
 }
 
-void ColorIndicatorLabel::setInverted(bool i)
+void ColorIndicatorLabel::setInverted(bool inverted)
 {
-	if(inverted == i)
+	if(this->inverted == inverted)
 		return;
 
-	inverted = i;
+	this->inverted = inverted;
 
 	r = 1.0-r;
 	g = 1.0-g;
@@ -76,52 +76,52 @@ void ColorIndicatorLabel::setInverted(bool i)
 	updateTimer.start();
 }
 
-void ColorIndicatorLabel::exchangeRateChanged(float _e, QChar _c) {
-	e = _e;
-	c = _c;
-	if(m == BitCoins) {
+void ColorIndicatorLabel::exchangeRateChanged(float displayValue, QChar displayPrefix) {
+	this->displayValue = displayValue;
+	this->displayPrefix = displayPrefix;
+	if(currentMode == Coins) {
 
-		if(e == 1)
-			setText(QString::number(v, 'f', 8));
+		if(displayValue == 1)
+			setText(QString::number(currentValue, 'f', 8));
 		else
-			setText(QString("%1%2").arg(c).arg(QString::number(v * e, 'f', 2)));
+			setText(QString("%1%2").arg(displayPrefix).arg(QString::number(currentValue * displayValue, 'f', 2)));
 	}
 
 }
 
-void ColorIndicatorLabel::setValue(qreal v, BaseSuffix baseSuffix){
-	if(v == this->v)
+void ColorIndicatorLabel::setValue(qreal newValue, BaseSuffix baseSuffix){
+	if(newValue == this->currentValue)
 		return;
 
-	QColor n;
-	if(this->v == -1 || v == -1)
-		n = inverted ? Qt::white : Qt::black;
+	QColor newColor;
+	if(this->currentValue == -1 || newValue == -1)
+		newColor = inverted ? Qt::white : Qt::black;
 	else {
-		if(v > this->v)
-			n = upColor;
+		if(newValue > this->currentValue)
+			newColor = upColor;
 		else
-			n = downColor;
+			newColor = downColor;
 		if(inverted)
-			n = n.lighter();
+			newColor = newColor.lighter();
 	}
-	r = n.redF();
-	g = n.greenF();
-	b = n.blueF();
+	r = newColor.redF();
+	g = newColor.greenF();
+	b = newColor.blueF();
 	updateTimer.start();
 
-	this->v = v;
+	this->currentValue = newValue;
 
-	switch(m){
-		case BitCoins:
-			if(e == 1)
-				setText(QString::number(v, 'f', 8));
+	switch(currentMode){
+		case Coins:
+			if(displayValue == 1)
+				setText(QString::number(newValue, 'f', 8));
 			else
-				setText(QString("%1%2").arg(c).arg(QString::number(v * e, 'f', 2)));
+				setText(QString("%1%2").arg(displayPrefix).arg(QString::number(newValue * displayValue, 'f', 2)));
 			break;
 
 		case HashRate:
 		{
-			qreal hr = v;
+			qreal finalNewValue = newValue;
 			char suffix = QChar::Null;
 			switch(baseSuffix) {
 				case None:
@@ -141,26 +141,26 @@ void ColorIndicatorLabel::setValue(qreal v, BaseSuffix baseSuffix){
 			}
 
 			if(suffix == 'K')
-				if(hr > 1000) {
-					hr /= 1000;
+				if(finalNewValue > 1000) {
+					finalNewValue /= 1000;
 					suffix = 'M';
 				}
 			if(suffix == 'M')
-				if(hr > 1000) {
-					hr /= 1000;
+				if(finalNewValue > 1000) {
+					finalNewValue /= 1000;
 					suffix = 'G';
 				}
 			if(suffix == 'G')
-				if(hr > 1000) {
-					hr /= 1000;
+				if(finalNewValue > 1000) {
+					finalNewValue /= 1000;
 					suffix = 'T';
 				}
-			setText(QString("%1%2H/s").arg(hr).arg(suffix));
+			setText(QString("%1%2H/s").arg(finalNewValue).arg(suffix));
 			break;
 		}
 
 		case Other:
-			setText(QString::number(v));
+			setText(QString::number(newValue));
 			break;
 	}
 

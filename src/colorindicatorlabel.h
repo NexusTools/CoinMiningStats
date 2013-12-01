@@ -10,7 +10,7 @@ class ColorIndicatorLabel : public QLabel
 public:
 	enum Mode {
 		Other,
-		BitCoins,
+		Coins,
 		HashRate
 	};
 
@@ -24,17 +24,17 @@ public:
 
 	explicit ColorIndicatorLabel(QWidget *parent);
 
-	inline qreal value() const{return v;}
-	inline void setUpColor(Qt::GlobalColor c){upColor = c;}
-	inline void setDownColor(Qt::GlobalColor c){downColor = c;}
-	inline void setMode(Mode n){m=n;}
+	inline qreal value() const{return currentValue;}
+	inline void setUpColor(Qt::GlobalColor upColor){this->upColor = upColor;}
+	inline void setDownColor(Qt::GlobalColor downColor){this->downColor = downColor;}
+	inline void setMode(Mode newMode){currentMode=newMode;}
 
 	void paintEvent(QPaintEvent *);
 
 public slots:
 	void updateColor();
-	void setInverted(bool i);
-	void exchangeRateChanged(float e, QChar c);
+	void setInverted(bool inverted);
+	void exchangeRateChanged(float displayValue, QChar displayPrefix);
 	void setValue(qreal r, BaseSuffix baseSuffix=None);
 
 private:
@@ -43,10 +43,10 @@ private:
 	bool inverted;
 
 	QTimer updateTimer;
-	qreal v, dv;
-	float e;
-	QChar c;
-	Mode m;
+	qreal currentValue, dv;
+	float displayValue;
+	QChar displayPrefix;
+	Mode currentMode;
 };
 
 #endif // COLORINDICATORLABEL_H
