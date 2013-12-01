@@ -512,8 +512,8 @@ void MainWindow::accountDataReply(QVariantMap map)
 
 		qreal totalRate = map.value("totalRate").toReal();
 		// Process Workers
-		if(map.contains("workers")) {
-			int numWorkers = map.value("workers").toInt();
+		if(map.contains("totalWorkers")) {
+			int numWorkers = map.value("totalWorkers").toInt();
 			for(int i = 0; i < numWorkers; i++) {
 				QVariantMap workerMap = map.value(QString("worker%1").arg(i)).toMap();
 				QString workerName = workerMap.value("name").toString();

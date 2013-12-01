@@ -38,7 +38,7 @@ void Miner::requestAPIData() {
 		return;
 	}
 
-	apiDataRequester = MainWindow::accessMan.get(QNetworkRequest(QUrl(QString(hostURL).arg(apiKey))));
+	apiDataRequester = MainWindow::accessMan.get(QNetworkRequest(QUrl(QString(hostURL))));
 	connect(apiDataRequester, SIGNAL(finished()), this, SLOT(apiDataReply()));
 }
 
