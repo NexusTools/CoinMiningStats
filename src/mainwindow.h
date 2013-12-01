@@ -76,8 +76,7 @@ private slots:
 	void minerStopped();
 
 signals:
-	void receivedPoolStatsData(QVariantMap data);
-	void receivedAccountData(QVariantMap data);
+	void plotRateGraph(qreal hashrate);
 	void receivedBlockInfoData(QVariantMap data);
 	void exchangeRateChanged(float, QChar);
 	void invertChanged(bool);

@@ -9,31 +9,29 @@
 
 class Graph : public QDialog
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
-    explicit Graph(QWidget *parent = 0);
-    void resizeEvent(QResizeEvent *);
-    void paintEvent(QPaintEvent *);
-    
+	explicit Graph(QWidget *parent = 0);
+	void resizeEvent(QResizeEvent *);
+	void paintEvent(QPaintEvent *);
+
 public slots:
-    void receivedPoolStatsData(QVariantMap data);
-    void receivedAccountData(QVariantMap data);
+	void plotRate(qreal totalRate);
 
 private slots:
-    void tick();
+	void tick();
 
 private:
-    QPixmap buffer;
-    QTimer ticks;
+	QPixmap buffer;
+	QTimer ticks;
 
-    QPen green; // I might be an idiot
-    QPen blackpen;
+	QPen green; // I might be an idiot
+	QPen blackpen;
 
-    int offset;
+	int offset;
 
-    int lasth;
-    int rlasth;
-    float totalrate;
+	int lasth;
+	int rlasth;
 };
 
 #endif // GRAPH_H

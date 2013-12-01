@@ -435,7 +435,7 @@ void MainWindow::showGraph(){
 
 	graph = new Graph(this);
 	connect(graph, SIGNAL(destroyed()), this, SLOT(graphDestroyed()));
-	connect(this, SIGNAL(receivedAccountData(QVariantMap)), graph, SLOT(receivedAccountData(QVariantMap)));
+	connect(this, SIGNAL(plotRateGraph(qreal)), graph, SLOT(plotRate(qreal)));
 }
 
 void MainWindow::displayCurrencyChanged(QAction* act) {
@@ -508,9 +508,9 @@ void MainWindow::accountDataReply(QVariantMap map)
 		qDebug() << map.keys();
 		QStringList knownWorkers;
 
-		emit receivedAccountData(map);
 
 		qreal totalRate = map.value("totalRate").toReal();
+		emit plotRateGraph(totalRate);
 		// Process Workers
 		if(map.contains("totalWorkers")) {
 			int numWorkers = map.value("totalWorkers").toInt();
