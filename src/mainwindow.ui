@@ -522,7 +522,7 @@
   </action>
   <action name="actionMinerControl">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>Start Miner</string>

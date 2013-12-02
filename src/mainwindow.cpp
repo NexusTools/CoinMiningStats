@@ -143,7 +143,6 @@ MainWindow::MainWindow(QWidget *parent) :
 		QTimer::singleShot(100, this, SLOT(toggleMiner()));
 
 	if(qApp->arguments().contains("-a") || settings.value("auto").toBool()) {
-		actionMinerControl->setDisabled(true);
 		actionIdleControl->setChecked(true);
 	}
 }
@@ -162,13 +161,14 @@ void MainWindow::showSettings() {
 
 void MainWindow::minerStarted() {
 	showMessage("Started Miner", "The mining software is now running.");
-	actionMinerControl->setEnabled(!actionIdleControl->isChecked());
+	actionMinerControl->setEnabled(true);
 	trayIcon->setToolTip("Miner Started");
 }
 
 void MainWindow::minerStopped() {
 	showMessage("Stopped Miner", "The mining software has stopped running.");
 	updateSelectedMiner(minerGroup->checkedAction());
+	actionMinerControl->setEnabled(true);
 	trayIcon->setToolTip("Miner Stopped");
 }
 
@@ -383,8 +383,6 @@ void MainWindow::updateSelectedMiner(QAction* action)
 		actionMinerControl->setEnabled(!miner.isRunning() && !actionIdleControl->isChecked());
 		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
 	}
-
-	actionMinerControl->setEnabled(action);
 }
 
 void MainWindow::checkIdle()
@@ -393,7 +391,7 @@ void MainWindow::checkIdle()
 	if(miner.isRunning() && mPos != lastMousePos) {
 		lastMouseMove.start();
 		miner.stop();
-	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000) {
+	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000 && mPos == lastMousePos) {
 		lastMouseMove.start();
 		miner.start();
 	}
@@ -405,10 +403,8 @@ void MainWindow::idleControlUpdated()
 	settings.setValue("auto", actionIdleControl->isChecked());
 	if(actionIdleControl->isChecked()) {
 		idleWatcher.start();
-		actionMinerControl->setEnabled(false);
 	} else {
 		idleWatcher.stop();
-		actionMinerControl->setEnabled(!miner.isRunning());
 	}
 }
 
@@ -441,8 +437,8 @@ void MainWindow::showMessage(QString title, QString message)
 
 void MainWindow::stopMiner(){
 	showMessage("Stopping Miner", "The mining software is being stopped...");
-	miner.stop();
 	actionMinerControl->setEnabled(false);
+	miner.stop();
 }
 
 void MainWindow::startMiner(){
@@ -471,6 +467,8 @@ void MainWindow::startMiner(){
 	actionMinerControl->setText(QString("Stop `%1`").arg(name));
 
 	showMessage("Starting Miner", "The mining software is being started...");
+	if(actionIdleControl->isChecked())
+		lastMouseMove.addSecs(settings.value("idle_timeout", 30).toInt());
 	miner.start(name, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
 }
 
