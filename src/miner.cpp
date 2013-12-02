@@ -105,14 +105,8 @@ void Miner::passStdErr() {
 	qDebug() << minerProcess.readAllStandardError().data();
 }
 
-void Miner::start() {
-	stop();
-
-	startMinerTimer.start();
-	minerProcess.start(applicationPath, applicationArguments);
-}
-
-void Miner::start(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert) {
+void Miner::init(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert) {
+	apiTimer.stop();
 	stop();
 	this->name = name;
 	this->applicationPath = applicationPath;
@@ -122,12 +116,16 @@ void Miner::start(QString name, QString applicationPath, QStringList application
 	this->apiSecert = apiSecert;
 	requestAPIData();
 	apiTimer.start();
+}
+
+void Miner::start() {
+	stop();
+
 	startMinerTimer.start();
 	minerProcess.start(applicationPath, applicationArguments);
 }
 
 void Miner::stop() {
-	apiTimer.stop();
 	if(!minerProcess.isOpen())
 		return;
 	stopMinerTimer.start();

@@ -380,6 +380,7 @@ void MainWindow::updateSelectedMiner(QAction* action)
 					actions.at(i)->setEnabled(true);
 			}
 		}
+		miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
 
 		actionMinerControl->setEnabled(!miner.isRunning() && !actionIdleControl->isChecked());
 		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
@@ -467,7 +468,7 @@ void MainWindow::startMiner(){
 	showMessage("Starting Miner", "The mining software is being started...");
 	if(actionIdleControl->isChecked())
 		lastMouseMove.addSecs(settings.value("idle_timeout", 30).toInt());
-	miner.start(name, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
+	miner.start();
 }
 
 void MainWindow::showMinerManagement(){

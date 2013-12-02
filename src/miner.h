@@ -15,8 +15,8 @@ class Miner : public QObject
 		QProcess minerProcess;
 
 		bool isRunning();
+		void init(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert);
 		void start();
-		void start(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert);
 		void stop();
 
 	private:
