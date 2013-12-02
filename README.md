@@ -5,8 +5,8 @@ It uses the APIs provided by pools to display your statistics.
 
 Supported Pools
 ---------------
-Slush's Pool
-WeMineLTC's Pool
+- Slush's Pool
+- WeMineLTC's Pool
 
 More to be added later
 
