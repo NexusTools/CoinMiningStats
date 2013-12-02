@@ -390,11 +390,10 @@ void MainWindow::checkIdle()
 {
 	QPoint mPos = QCursor::pos();
 	if(mPos != lastMousePos) {
-		if(miner.isRunning()) {
+		if(miner.isRunning())
 			stopMiner();
-		}
 		lastMouseMove.start();
-	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 5).toInt() * 1000) {
+	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000) {
 		startMiner();
 	}
 	lastMousePos = mPos;
