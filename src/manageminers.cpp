@@ -6,8 +6,7 @@
 #include <QDebug>
 
 ManageMiners::ManageMiners(QWidget *parent) :
-	QDialog(parent)
-{
+	QDialog(parent) {
 	setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose);
 	connect(addMiner, SIGNAL(clicked()), this, SLOT(addMinerEntry()));
@@ -69,7 +68,7 @@ void ManageMiners::storePage() {
 		qWarning() << "Store Called with no Active Miner";
 }
 
-void ManageMiners::addArg(){
+void ManageMiners::addArg() {
 	blockSignals(true);
 	QInputDialog inputDiag(this);
 	inputDiag.setInputMode(QInputDialog::TextInput);
@@ -82,14 +81,14 @@ void ManageMiners::addArg(){
 	storePage();
 }
 
-void ManageMiners::removeArg(){
+void ManageMiners::removeArg() {
 	blockSignals(true);
 	arguments->model()->removeRow(arguments->currentRow());
 	blockSignals(false);
 	storePage();
 }
 
-void ManageMiners::moveArgUp(){
+void ManageMiners::moveArgUp() {
 	blockSignals(true);
 	QListWidgetItem* upItem = arguments->item(arguments->currentRow()-1);
 	QString upVal = upItem->text();
@@ -101,7 +100,7 @@ void ManageMiners::moveArgUp(){
 	storePage();
 }
 
-void ManageMiners::moveArgDown(){
+void ManageMiners::moveArgDown() {
 	blockSignals(true);
 	QListWidgetItem* downItem = arguments->item(arguments->currentRow()+1);
 	QString upVal = downItem->text();
@@ -113,7 +112,7 @@ void ManageMiners::moveArgDown(){
 	storePage();
 }
 
-void ManageMiners::setMinerData(QVariant var){
+void ManageMiners::setMinerData(QVariant var) {
 	blockSignals(true);
 	minerData = var.toMap();
 	minerList->clear();
@@ -122,14 +121,13 @@ void ManageMiners::setMinerData(QVariant var){
 	blockSignals(false);
 }
 
-void ManageMiners::updateArgumentControls(){
+void ManageMiners::updateArgumentControls() {
 	moveUp->setEnabled(arguments->currentRow() > 0);
 	moveDown->setEnabled(arguments->currentRow() > -1 && arguments->currentRow() < arguments->count()-1);
 	removeArgument->setEnabled(arguments->currentRow() > -1);
 }
 
-void ManageMiners::updateMinerPage()
-{
+void ManageMiners::updateMinerPage() {
 	blockSignals(true);
 	arguments->clear();
 	minerPage->setEnabled(minerList->currentItem());
@@ -160,8 +158,7 @@ void ManageMiners::updateMinerPage()
 	blockSignals(false);
 }
 
-void ManageMiners::removeMinerEntry()
-{
+void ManageMiners::removeMinerEntry() {
 	blockSignals(true);
 	qDebug() << "Removing" << minerList->currentIndex();
 	if(minerList->currentItem()) {
@@ -172,8 +169,7 @@ void ManageMiners::removeMinerEntry()
 	storePage();
 }
 
-void ManageMiners::addMinerEntry()
-{
+void ManageMiners::addMinerEntry() {
 	blockSignals(true);
 	QInputDialog inputDiag(this);
 	inputDiag.setInputMode(QInputDialog::TextInput);
@@ -193,8 +189,7 @@ void ManageMiners::addMinerEntry()
 	storePage();
 }
 
-void ManageMiners::changeEvent(QEvent *e)
-{
+void ManageMiners::changeEvent(QEvent *e) {
 	QDialog::changeEvent(e);
 	switch (e->type()) {
 	case QEvent::LanguageChange:

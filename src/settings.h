@@ -5,13 +5,13 @@
 
 class Settings : public QDialog, private Ui::Settings
 {
-    Q_OBJECT
-    
+	Q_OBJECT
+
 public:
-    explicit Settings(QWidget *parent = 0);
-    
+	explicit Settings(QWidget *parent = 0);
+
 protected:
-    void changeEvent(QEvent *e);
+	void changeEvent(QEvent *e);
 };
 
 #endif // SETTINGS_H

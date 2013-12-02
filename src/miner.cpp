@@ -4,8 +4,7 @@
 #include "loosejson.h"
 
 Miner::Miner(QObject *parent) :
-	QObject(parent)
-{
+	QObject(parent) {
 	apiTimer.setInterval(30000);
 	connect(&minerProcess, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
 
@@ -98,11 +97,11 @@ void Miner::apiDataReply() {
 	apiDataRequester->deleteLater();
 }
 
-void Miner::passStdOut(){
+void Miner::passStdOut() {
 	qDebug() << minerProcess.readAllStandardOutput().data();
 }
 
-void Miner::passStdErr(){
+void Miner::passStdErr() {
 	qDebug() << minerProcess.readAllStandardError().data();
 }
 
@@ -158,8 +157,7 @@ void Miner::checkIfItHasStopped() {
 	}
 }
 
-void Miner::minerStateChanged(QProcess::ProcessState state)
-{
+void Miner::minerStateChanged(QProcess::ProcessState state) {
 	qDebug() << "Miner" << name << " State Changed" << state;
 	switch(state) {
 		default:

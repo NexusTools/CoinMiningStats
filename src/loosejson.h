@@ -8,14 +8,14 @@
 class LooseJSON
 {
 public:
-    enum EncodeStrictness {
-        VeryLoose,
-        VeryStrict
-    };
+	enum EncodeStrictness {
+		VeryLoose,
+		VeryStrict
+	};
 
-    static QVariant parse(QIODevice* iodevice);
-    static QVariant parse(QByteArray data); // Parse UTF8 JSON String
-    static QByteArray encode(QVariant data, EncodeStrictness =VeryLoose);
+	static QVariant parse(QIODevice* iodevice);
+	static QVariant parse(QByteArray data); // Parse UTF8 JSON String
+	static QByteArray encode(QVariant data, EncodeStrictness =VeryLoose);
 
 };
 

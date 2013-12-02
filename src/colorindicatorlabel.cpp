@@ -5,8 +5,7 @@
 #include <QDebug>
 
 ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
-	QLabel(parent)
-{
+	QLabel(parent) {
 	if(parent->window())
 		connect(parent->window(), SIGNAL(invertChanged(bool)), this, SLOT(setInverted(bool)));
 
@@ -27,8 +26,7 @@ ColorIndicatorLabel::ColorIndicatorLabel(QWidget *parent) :
 	connect(&updateTimer, SIGNAL(timeout()), this, SLOT(updateColor()));
 }
 
-void ColorIndicatorLabel::paintEvent(QPaintEvent *)
-{
+void ColorIndicatorLabel::paintEvent(QPaintEvent *) {
 	QPainter p(this);
 	p.setFont(font());
 	p.setPen(QColor::fromRgbF(r, g, b));
@@ -62,8 +60,7 @@ void ColorIndicatorLabel::updateColor(){
 	repaint();
 }
 
-void ColorIndicatorLabel::setInverted(bool inverted)
-{
+void ColorIndicatorLabel::setInverted(bool inverted) {
 	if(this->inverted == inverted)
 		return;
 
@@ -84,7 +81,7 @@ void ColorIndicatorLabel::exchangeRateChanged(float displayValue, QChar displayP
 	}
 }
 
-void ColorIndicatorLabel::setValue(qreal newValue, BaseSuffix baseSuffix){
+void ColorIndicatorLabel::setValue(qreal newValue, BaseSuffix baseSuffix) {
 	if(newValue == this->currentValue)
 		return;
 
@@ -148,12 +145,12 @@ void ColorIndicatorLabel::setValue(qreal newValue, BaseSuffix baseSuffix){
 					suffix = 'T';
 				}
 			setText(QString("%1%2H/s").arg(finalNewValue).arg(suffix));
-			break;
+		break;
 		}
 
 		case Other:
 			setText(QString::number(newValue));
-			break;
+		break;
 	}
 
 }

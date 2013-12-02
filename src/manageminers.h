@@ -5,39 +5,39 @@
 
 class ManageMiners : public QDialog, private Ui::ManageMiners
 {
-    Q_OBJECT
-    
+	Q_OBJECT
+
 public:
-    explicit ManageMiners(QWidget *parent = 0);
-    void setMinerData(QVariant);
+	explicit ManageMiners(QWidget *parent = 0);
+	void setMinerData(QVariant);
 
-    QVariant _json(QIODevice*);
-    QVariant _jsonMap(QIODevice*);
-    QVariant _jsonArray(QIODevice*);
+	QVariant _json(QIODevice*);
+	QVariant _jsonMap(QIODevice*);
+	QVariant _jsonArray(QIODevice*);
 
-    QVariant parseJSON(QByteArray data);
+	QVariant parseJSON(QByteArray data);
 
 public slots:
-    void addMinerEntry();
-    void removeMinerEntry();
-    void updateMinerPage();
-    void updateArgumentControls();
-    void addArg();
-    void removeArg();
-    void moveArgUp();
-    void moveArgDown();
-    void storePage();
-    void save();
-    void browseProgram();
-    
+	void addMinerEntry();
+	void removeMinerEntry();
+	void updateMinerPage();
+	void updateArgumentControls();
+	void addArg();
+	void removeArg();
+	void moveArgUp();
+	void moveArgDown();
+	void storePage();
+	void save();
+	void browseProgram();
+
 protected:
-    void changeEvent(QEvent *e);
+	void changeEvent(QEvent *e);
 
 signals:
-    void dataUpdated(QVariantMap);
+	void dataUpdated(QVariantMap);
 
 private:
-    QVariantMap minerData;
+	QVariantMap minerData;
 };
 
 #endif // MANAGEMINERS_H

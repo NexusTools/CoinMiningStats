@@ -386,8 +386,7 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	}
 }
 
-void MainWindow::checkIdle()
-{
+void MainWindow::checkIdle() {
 	QPoint mPos = QCursor::pos();
 	if(mPos != lastMousePos) {
 		if(miner.isRunning())
@@ -399,8 +398,7 @@ void MainWindow::checkIdle()
 	lastMousePos = mPos;
 }
 
-void MainWindow::idleControlUpdated()
-{
+void MainWindow::idleControlUpdated() {
 	settings.setValue("auto", actionIdleControl->isChecked());
 	if(actionIdleControl->isChecked()) {
 		idleWatcher.start();
@@ -409,8 +407,7 @@ void MainWindow::idleControlUpdated()
 	}
 }
 
-void MainWindow::showMessage(QString title, QString message)
-{
+void MainWindow::showMessage(QString title, QString message) {
 	qDebug() << "Showing Notification" << title << message;
 #ifdef DBUS_NOTIFICATIONS
 	if(DBusNotificationInterface.isValid()) {
@@ -485,7 +482,7 @@ void MainWindow::showMinerManagement(){
 	connect(miners, SIGNAL(destroyed()), this, SLOT(minerManagementDestroyed()));
 }
 
-void MainWindow::showGraph(){
+void MainWindow::showGraph() {
 	if(graph) {
 		graph->setFocus();
 		return;
@@ -503,8 +500,7 @@ void MainWindow::displayCurrencyChanged(QAction* act) {
 	requestCurrencyExchangeRate();
 }
 
-void MainWindow::requestCurrencyExchangeRate()
-{
+void MainWindow::requestCurrencyExchangeRate() {
 	updateExchangeRate.stop();
 
 	if(exchangeRateRequest)
@@ -535,8 +531,7 @@ void MainWindow::requestCurrencyExchangeRate()
 	connect(exchangeRateRequest, SIGNAL(finished()), this, SLOT(exchangeRateReply()));
 }
 
-void MainWindow::requestBlockInfoUpdate()
-{
+void MainWindow::requestBlockInfoUpdate() {
 	updateBlockInfoTimer.stop();
 	qDebug() << "Requesting Block Info Update";
 	if(blockInfoRequest)
@@ -581,8 +576,7 @@ void MainWindow::exchangeRateReply() {
 	exchangeRateRequest = 0;
 }
 
-void MainWindow::accountDataReply(QVariantMap map)
-{
+void MainWindow::accountDataReply(QVariantMap map) {
 	if(!map.isEmpty()) {
 		QStringList knownWorkers;
 
@@ -620,8 +614,7 @@ void MainWindow::accountDataReply(QVariantMap map)
 		}
 
 		for(int a=workers->rowCount()-1; a>=0; a--) {
-			if(!workers->item(a, 0) ||
-					!knownWorkers.contains(workers->item(a, 0)->text()))
+			if(!workers->item(a, 0) || !knownWorkers.contains(workers->item(a, 0)->text()))
 				workers->removeRow(a);
 		}
 
@@ -644,8 +637,7 @@ void MainWindow::accountDataReply(QVariantMap map)
 		qWarning() << "Bad Account Data Reply";
 }
 
-void MainWindow::blockInfoReply()
-{
+void MainWindow::blockInfoReply() {
 	QTimer::singleShot(0, blockInfoRequest, SLOT(deleteLater()));
 	updateBlockInfoTimer.start();
 	if(blockInfoRequest->error()) {
@@ -679,8 +671,7 @@ void MainWindow::toggleMiner() {
 		startMiner();
 }
 
-void MainWindow::changeEvent(QEvent *e)
-{
+void MainWindow::changeEvent(QEvent *e) {
 	QMainWindow::changeEvent(e);
 	switch (e->type()) {
 	case QEvent::LanguageChange:

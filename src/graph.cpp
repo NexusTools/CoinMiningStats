@@ -3,8 +3,7 @@
 #include <QPainter>
 
 Graph::Graph(QWidget *parent) :
-	QDialog(parent)
-{
+	QDialog(parent) {
 	setMinimumSize(400, 300);
 	setAttribute(Qt::WA_DeleteOnClose);
 	setWindowTitle("Graph");
@@ -25,8 +24,7 @@ Graph::Graph(QWidget *parent) :
 	connect(&ticks, SIGNAL(timeout()), this, SLOT(tick()));
 }
 
-void Graph::resizeEvent(QResizeEvent *)
-{
+void Graph::resizeEvent(QResizeEvent *) {
 	// Create and clear the buffer
 	buffer = QPixmap(size());
 	buffer.fill(Qt::black);
@@ -54,8 +52,7 @@ void Graph::tick(){
 	repaint();
 }
 
-void Graph::paintEvent(QPaintEvent *)
-{
+void Graph::paintEvent(QPaintEvent *) {
 	if(buffer.isNull())
 		return; // No Buffer Available;
 
