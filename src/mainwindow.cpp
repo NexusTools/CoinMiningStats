@@ -371,15 +371,9 @@ void MainWindow::updateSelectedMiner(QAction* action)
 			break;
 		}
 
-		QVariantMap allMiners = settings.value("miners").toMap();
-		QList<QAction*> actions = menuMining->actions();
-		for(int i = 0; i < actions.length(); i++) {
-			QVariantMap::iterator it;
-			for (it = allMiners.begin(); it != allMiners.end(); ++it) {
-				if(actions.at(i)->text() == it.key())
-					actions.at(i)->setEnabled(true);
-			}
-		}
+		for(int i = 0; i < minerGroup->actions().count(); i++)
+			minerGroup->actions().at(i)->setEnabled(true);
+
 		miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
 
 		actionMinerControl->setEnabled(!miner.isRunning() && !actionIdleControl->isChecked());
@@ -453,15 +447,9 @@ void MainWindow::startMiner(){
 			return;
 	}
 
-	QVariantMap allMiners = settings.value("miners").toMap();
-	QList<QAction*> actions = menuMining->actions();
-	for(int i = 0; i < actions.length(); i++) {
-		QVariantMap::iterator it;
-		for (it = allMiners.begin(); it != allMiners.end(); ++it) {
-			if(actions.at(i)->text() == it.key())
-				actions.at(i)->setEnabled(false);
-		}
-	}
+	for(int i = 0; i < minerGroup->actions().count(); i++)
+		minerGroup->actions().at(i)->setEnabled(false);
+
 	actionMinerControl->setEnabled(false);
 	actionMinerControl->setText(QString("Stop `%1`").arg(name));
 
