@@ -385,7 +385,6 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	}
 
 	actionMinerControl->setEnabled(action);
-	actionIdleControl->setEnabled(action);
 }
 
 void MainWindow::checkIdle()
