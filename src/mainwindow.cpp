@@ -144,6 +144,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	if(qApp->arguments().contains("-a") || settings.value("auto").toBool()) {
 		actionIdleControl->setChecked(true);
+		idleControlUpdated();
 	}
 }
 
@@ -388,12 +389,13 @@ void MainWindow::updateSelectedMiner(QAction* action)
 void MainWindow::checkIdle()
 {
 	QPoint mPos = QCursor::pos();
-	if(miner.isRunning() && mPos != lastMousePos) {
+	if(mPos != lastMousePos) {
+		if(miner.isRunning()) {
+			stopMiner();
+		}
 		lastMouseMove.start();
-		miner.stop();
-	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 30).toInt() * 1000 && mPos == lastMousePos) {
-		lastMouseMove.start();
-		miner.start();
+	} else if(!miner.isRunning() && lastMouseMove.elapsed() > settings.value("idle_timeout", 5).toInt() * 1000) {
+		startMiner();
 	}
 	lastMousePos = mPos;
 }
