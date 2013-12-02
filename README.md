@@ -5,7 +5,10 @@ It uses the APIs provided by pools to display your statistics.
 
 Supported Pools
 ---------------
-Only Slush's Pool is supported at this time
+Slush's Pool
+WeMineLTC's Pool
+
+More to be added later
 
 Planned Features
 ----------------
