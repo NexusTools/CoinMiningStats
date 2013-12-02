@@ -100,10 +100,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	miners = 0;
 	graph = 0;
 	mainSettings = 0;
+	trayHashRate = 0;
 
 	trayIcon->setIcon(qApp->windowIcon());
 	if(!QSystemTrayIcon::isSystemTrayAvailable()) {
-		trayHashRate = 0;
 		qWarning() << "System Tray Not Available.";
 		setAttribute(Qt::WA_DeleteOnClose);
 		if(qApp->arguments().contains("-m"))
@@ -521,10 +521,7 @@ void MainWindow::requestCurrencyExchangeRate() {
 }
 
 void MainWindow::requestBlockInfoUpdate() {
-	updateBlockInfoTimer.stop();
 	qDebug() << "Requesting Block Info Update";
-	if(blockInfoRequest)
-		blockInfoRequest->deleteLater();
 	blockInfoRequest = accessMan.get(QNetworkRequest(QUrl("http://blockchain.info/latestblock")));
 	connect(blockInfoRequest, SIGNAL(finished()), this, SLOT(blockInfoReply()));
 }
@@ -627,8 +624,6 @@ void MainWindow::accountDataReply(QVariantMap map) {
 }
 
 void MainWindow::blockInfoReply() {
-	QTimer::singleShot(0, blockInfoRequest, SLOT(deleteLater()));
-	updateBlockInfoTimer.start();
 	if(blockInfoRequest->error()) {
 		qWarning() << "Pool Statistics Request Failed" << blockInfoRequest->errorString();
 
@@ -649,7 +644,7 @@ void MainWindow::blockInfoReply() {
 	} else
 		qWarning() << "Bad Block Info Reply";
 
-
+	blockInfoRequest->deleteLater();
 	blockInfoRequest = 0;
 }
 

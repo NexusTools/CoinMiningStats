@@ -96,7 +96,6 @@ private:
 	QSystemTrayIcon* trayIcon;
 	QNetworkReply* exchangeRateRequest;
 	QNetworkReply* blockInfoRequest;
-	QTimer updateBlockInfoTimer;
 	QTimer updateExchangeRate;
 
 	QPoint dragPoint;
