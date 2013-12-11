@@ -28,11 +28,11 @@ void Miner::requestAPIData() {
 	QString hostURL;
 	switch(apiHost) {
 		case 0:
-			hostURL = QString("http://www.wemineltc.com/api?api_key=%1").arg(apiKey);
+			hostURL = QString("https://www.wemineltc.com/api?api_key=%1").arg(apiKey);
 		break;
 
 		case 1:
-			hostURL = QString("http://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey);
+			hostURL = QString("https://mining.bitcoin.cz/accounts/profile/json/%1").arg(apiKey);
 		break;
 
 		default:
