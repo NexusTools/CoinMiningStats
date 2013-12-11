@@ -5,6 +5,8 @@
 #include <QProcess>
 #include <QTimer>
 #include <QNetworkReply>
+#include <QFile>
+#include <QTextStream>
 
 class Miner : public QObject
 {
@@ -29,6 +31,9 @@ class Miner : public QObject
 
 		QTimer startMinerTimer;
 		QTimer stopMinerTimer;
+
+		QFile* logFile;
+		QTextStream* logStream;
 
 		QNetworkReply* apiDataRequester;
 

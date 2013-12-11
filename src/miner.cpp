@@ -1,5 +1,6 @@
 #include "miner.h"
 #include <QDebug>
+#include <QDir>
 #include "mainwindow.h"
 #include "loosejson.h"
 
@@ -17,6 +18,7 @@ Miner::Miner(QObject *parent) :
 	connect(&stopMinerTimer, SIGNAL(timeout()), this, SLOT(checkIfItHasStopped()));
 
 	connect(&apiTimer, SIGNAL(timeout()), this, SLOT(requestAPIData()));
+
 }
 
 void Miner::requestAPIData() {
@@ -98,11 +100,16 @@ void Miner::apiDataReply() {
 }
 
 void Miner::passStdOut() {
-	qDebug() << minerProcess.readAllStandardOutput().data();
+	QString stdData = minerProcess.readAllStandardOutput().data();
+	qDebug() << stdData;
+	*this->logStream << stdData;
+
 }
 
 void Miner::passStdErr() {
-	qDebug() << minerProcess.readAllStandardError().data();
+	QString errData = minerProcess.readAllStandardError().data();
+	qDebug() << errData;
+	*this->logStream << errData << endl;
 }
 
 void Miner::init(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert) {
@@ -114,6 +121,8 @@ void Miner::init(QString name, QString applicationPath, QStringList applicationA
 	this->apiHost = apiHost;
 	this->apiKey = apiKey;
 	this->apiSecert = apiSecert;
+	logFile = new QFile(QDir::homePath().append(QDir::separator()).append("CoinMiningStats - ").append(name).append(".log"));
+
 	requestAPIData();
 	apiTimer.start();
 }
@@ -123,6 +132,13 @@ void Miner::start() {
 
 	startMinerTimer.start();
 	minerProcess.start(applicationPath, applicationArguments);
+	if(!logFile->open(QIODevice::ReadOnly | QIODevice::Text | QIODevice::Append)) {
+		qCritical() << "Could not open logging file!";
+		logStream = 0;
+	} else {
+		logStream = new QTextStream(logFile);
+		*this->logStream << endl << endl << "Started at " << QDateTime::currentDateTime().toString() << endl;
+	}
 }
 
 void Miner::stop() {
@@ -133,8 +149,14 @@ void Miner::stop() {
 	minerProcess.waitForFinished(3000);
 	if(minerProcess.state() != QProcess::NotRunning) {
 		qWarning() << "Force killing" << name;
+		if(logStream)
+			*this->logStream << "Force killing!" << endl;
 		minerProcess.kill();
 	}
+	if(logStream)
+		*this->logStream << "Stopped." << endl;
+	if(logFile)
+		logFile->close();
 }
 
 bool Miner::isRunning() {

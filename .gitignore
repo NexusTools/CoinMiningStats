@@ -1,5 +1,5 @@
 # Qt Build Files
-*.pro.user
+*.pro.user*
 Makefile
 moc_*.cpp
 ui_*.h
