@@ -6,13 +6,16 @@
 #include "loosejson.h"
 
 #include <stdlib.h>
+
 #include <QCursor>
+#include <QMessageBox>
 #include <QInputDialog>
+#include <QDesktopServices>
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QResource>
-#include <QDebug>
 #include <QThread>
+#include <QDebug>
 
 Miner MainWindow::miner;
 QNetworkAccessManager MainWindow::accessMan;
@@ -146,6 +149,10 @@ MainWindow::MainWindow(QWidget *parent) :
 		actionIdleControl->setChecked(true);
 		idleControlUpdated();
 	}
+
+	connect(actionQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+	connect(actionNexusTools, SIGNAL(triggered()), this, SLOT(aboutNexusTools()));
+	connect(actionDonate, SIGNAL(triggered()), this, SLOT(supportNexusTools()));
 }
 
 void MainWindow::showSettings() {
@@ -294,6 +301,18 @@ void MainWindow::mainSettingsDestroyed()
 {
 	mainSettings->deleteLater();
 	mainSettings = 0;
+}
+
+void MainWindow::aboutQt() {
+	QMessageBox::aboutQt(this);
+}
+
+void MainWindow::aboutNexusTools() {
+	QDesktopServices::openUrl(QUrl("https://www.nexustools.net/about"));
+}
+
+void MainWindow::supportNexusTools() {
+	QDesktopServices::openUrl(QUrl("https://www.nexustools.net/about#support"));
 }
 
 void MainWindow::minersUpdated(QVariantMap data, bool store){

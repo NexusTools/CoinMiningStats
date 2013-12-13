@@ -62,6 +62,10 @@ public slots:
 	void toggleVisible();
 	void updateSelectedMiner(QAction* =0);
 
+	void aboutNexusTools();
+	void supportNexusTools();
+	void aboutQt();
+
 	void checkIdle();
 	void idleControlUpdated();
 
