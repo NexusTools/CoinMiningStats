@@ -51,6 +51,7 @@ public slots:
 	void blockInfoReply();
 
 	void minersUpdated(QVariantMap, bool store=true);
+	void settingsUpdated(QVariantMap);
 	void graphDestroyed();
 	void minerManagementDestroyed();
 	void mainSettingsDestroyed();

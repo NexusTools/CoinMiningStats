@@ -20,7 +20,7 @@
 Miner MainWindow::miner;
 QNetworkAccessManager MainWindow::accessMan;
 
-void MainWindow::shutdown(){
+void MainWindow::shutdown() {
 	if(miner.isRunning()) {
 		miner.stop();
 	}
@@ -161,10 +161,14 @@ void MainWindow::showSettings() {
 		return;
 	}
 
-	mainSettings = new Settings(this);
-	//mainSettings->setMinerData(settings.value("mainSettings"));
-	connect(mainSettings, SIGNAL(dataUpdated(QVariantMap)), this, SLOT(minersUpdated(QVariantMap)));
+	mainSettings = new Settings(settings.value("mainSettings").toMap(), this);
+	connect(mainSettings, SIGNAL(dataUpdated(QVariantMap)), this, SLOT(settingsUpdated(QVariantMap)));
 	connect(mainSettings, SIGNAL(destroyed()), this, SLOT(mainSettingsDestroyed()));
+}
+
+void MainWindow::settingsUpdated(QVariantMap data) {
+	settings.setValue("mainSettings", data);
+	settings.sync();
 }
 
 void MainWindow::minerStarted() {
@@ -261,7 +265,7 @@ void MainWindow::setWidget(bool checked)
 	QTimer::singleShot(50, this, SLOT(finishTransform()));
 }
 
-void MainWindow::finishTransform(){
+void MainWindow::finishTransform() {
 	static Qt::WindowFlags oldFlags;
 	static QRect oldGeometry;
 	if (widgetMode)
@@ -444,13 +448,13 @@ void MainWindow::showMessage(QString title, QString message) {
 		qWarning() << "No Qt Notification Fallback";
 }
 
-void MainWindow::stopMiner(){
+void MainWindow::stopMiner() {
 	showMessage("Stopping Miner", "The mining software is being stopped...");
 	actionMinerControl->setEnabled(false);
 	miner.stop();
 }
 
-void MainWindow::startMiner(){
+void MainWindow::startMiner() {
 	QAction* active = minerGroup->checkedAction();
 	if(!active)
 		return;
@@ -475,7 +479,7 @@ void MainWindow::startMiner(){
 	miner.start();
 }
 
-void MainWindow::showMinerManagement(){
+void MainWindow::showMinerManagement() {
 	if(miners) {
 		miners->setFocus();
 		return;

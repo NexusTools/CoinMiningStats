@@ -33,7 +33,7 @@ void ColorIndicatorLabel::paintEvent(QPaintEvent *) {
 	p.drawText(QRect(QPoint(0, 0), size()), text());
 }
 
-void ColorIndicatorLabel::updateColor(){
+void ColorIndicatorLabel::updateColor() {
 	if(inverted && (r < 1 || g < 1 || b < 1)) {
 		r += ((1.0 - r) + 0.014) / 14;
 		g += ((1.0 - g) + 0.014) / 14;

@@ -25,7 +25,7 @@ ManageMiners::ManageMiners(QWidget *parent) :
 	connect(store, SIGNAL(clicked()), this, SLOT(save()));
 }
 
-void ManageMiners::browseProgram(){
+void ManageMiners::browseProgram() {
 	blockSignals(true);
 	QString file = QFileDialog::getOpenFileName(this, "Select Mining Program", QDir::homePath());
 	if(!file.isNull())
@@ -34,7 +34,7 @@ void ManageMiners::browseProgram(){
 	storePage();
 }
 
-void ManageMiners::save(){
+void ManageMiners::save() {
 	emit dataUpdated(minerData);
 	close();
 }

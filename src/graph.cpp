@@ -32,7 +32,7 @@ void Graph::resizeEvent(QResizeEvent *) {
 	offset = 0;
 }
 
-void Graph::tick(){
+void Graph::tick() {
 	if(buffer.isNull())
 		return; // No Buffer Available;
 
