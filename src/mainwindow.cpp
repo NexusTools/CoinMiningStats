@@ -3,6 +3,7 @@
 #include "graph.h"
 #include "settings.h"
 #include "miner.h"
+#include "poolapi.h"
 #include "loosejson.h"
 
 #include <stdlib.h>
@@ -18,6 +19,7 @@
 #include <QDebug>
 
 Miner MainWindow::miner;
+PoolAPI MainWindow::poolAPI;
 QNetworkAccessManager MainWindow::accessMan;
 
 void MainWindow::shutdown() {
@@ -84,7 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	connect(&miner, SIGNAL(started()), this, SLOT(minerStarted()));
 	connect(&miner, SIGNAL(stopped()), this, SLOT(minerStopped()));
-	connect(&miner, SIGNAL(apiDataReceived(QVariantMap)), this, SLOT(accountDataReply(QVariantMap)));
+
+	connect(&poolAPI, SIGNAL(apiDataReceived(QVariantMap)), this, SLOT(accountDataReply(QVariantMap)));
 
 	QAction* active = 0;
 	activeCurrency = settings.value("display_currency", "BTC").toString();
@@ -149,10 +152,16 @@ MainWindow::MainWindow(QWidget *parent) :
 		actionIdleControl->setChecked(true);
 		idleControlUpdated();
 	}
+	initPoolAPI();
 
 	connect(actionQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
 	connect(actionNexusTools, SIGNAL(triggered()), this, SLOT(aboutNexusTools()));
 	connect(actionDonate, SIGNAL(triggered()), this, SLOT(supportNexusTools()));
+}
+
+void MainWindow::initPoolAPI() {
+	QVariantMap curSettings = settings.value("mainSettings").toMap();
+	poolAPI.init(curSettings.value("apiHost").toInt(), curSettings.value("apiHostKey").toString());
 }
 
 void MainWindow::showSettings() {
@@ -169,6 +178,47 @@ void MainWindow::showSettings() {
 void MainWindow::settingsUpdated(QVariantMap data) {
 	settings.setValue("mainSettings", data);
 	settings.sync();
+	initPoolAPI();
+
+	int hostType = data.value("apiHost").toInt();
+	switch(hostType) {
+		case 0:
+			if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked()) {
+				actionLTC->setChecked(true);
+				displayCurrencyChanged(actionLTC);
+			}
+
+			actionBTC->setEnabled(false);
+			actionBTC->setChecked(false);
+			actionBTC_USD->setEnabled(false);
+			actionBTC_USD->setChecked(false);
+			actionBTC_EUR->setEnabled(false);
+			actionBTC_EUR->setChecked(false);
+
+			actionLTC->setEnabled(true);
+			actionLTC_USD->setEnabled(true);
+			actionLTC_EUR->setEnabled(true);
+		break;
+		case 1:
+			if(actionLTC->isChecked() || actionLTC_USD->isChecked() || actionLTC_EUR->isChecked()) {
+				actionBTC->setChecked(true);
+				displayCurrencyChanged(actionBTC);
+			}
+
+			actionBTC->setEnabled(true);
+			actionBTC_USD->setEnabled(true);
+			actionBTC_EUR->setEnabled(true);
+
+			actionLTC->setEnabled(false);
+			actionLTC->setChecked(false);
+			actionLTC_USD->setEnabled(false);
+			actionLTC_USD->setChecked(false);
+			actionLTC_EUR->setEnabled(false);
+			actionLTC_EUR->setChecked(false);
+		break;
+		case 2:
+		break;
+	}
 }
 
 void MainWindow::minerStarted() {
@@ -365,46 +415,6 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	QString minerText = action ? action->text() : settings.value("miner").toString();
 	settings.setValue("miner", minerText);
 	QVariantMap minerEntry = settings.value("miners").toMap().value(minerText).toMap();
-	int hostType = minerEntry.value("host").toInt();
-	qDebug() << minerEntry.value("program").toString();
-	switch(hostType) {
-		case 0:
-			if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked()) {
-				actionLTC->setChecked(true);
-				displayCurrencyChanged(actionLTC);
-			}
-
-			actionBTC->setEnabled(false);
-			actionBTC->setChecked(false);
-			actionBTC_USD->setEnabled(false);
-			actionBTC_USD->setChecked(false);
-			actionBTC_EUR->setEnabled(false);
-			actionBTC_EUR->setChecked(false);
-
-			actionLTC->setEnabled(true);
-			actionLTC_USD->setEnabled(true);
-			actionLTC_EUR->setEnabled(true);
-		break;
-		case 1:
-			if(actionLTC->isChecked() || actionLTC_USD->isChecked() || actionLTC_EUR->isChecked()) {
-				actionBTC->setChecked(true);
-				displayCurrencyChanged(actionBTC);
-			}
-
-			actionBTC->setEnabled(true);
-			actionBTC_USD->setEnabled(true);
-			actionBTC_EUR->setEnabled(true);
-
-			actionLTC->setEnabled(false);
-			actionLTC->setChecked(false);
-			actionLTC_USD->setEnabled(false);
-			actionLTC_USD->setChecked(false);
-			actionLTC_EUR->setEnabled(false);
-			actionLTC_EUR->setChecked(false);
-		break;
-		case 2:
-		break;
-	}
 
 	for(int i = 0; i < minerGroup->actions().count(); i++)
 		minerGroup->actions().at(i)->setEnabled(true);

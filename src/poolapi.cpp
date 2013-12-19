@@ -10,6 +10,13 @@ PoolAPI::PoolAPI(QObject *parent) :
 	connect(&apiTimer, SIGNAL(timeout()), this, SLOT(requestAPIData()));
 }
 
+void PoolAPI::init(int apiHost, QString apiKey) {
+	this->apiHost = apiHost;
+	this->apiKey = apiKey;
+	apiTimer.start();
+	requestAPIData();
+}
+
 void PoolAPI::requestAPIData() {
 	if(apiKey.trimmed().isEmpty())
 		return;

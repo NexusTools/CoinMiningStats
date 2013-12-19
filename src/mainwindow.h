@@ -19,6 +19,7 @@
 class ManageMiners;
 class Graph;
 class Miner;
+class PoolAPI;
 class Settings;
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
@@ -87,6 +88,7 @@ signals:
 	void invertChanged(bool);
 
 private:
+	void initPoolAPI();
 	friend class ColorIndicatorLabel;
 
 	QString activeCurrency;
@@ -108,6 +110,7 @@ private:
 	bool widgetMode;
 
 	static Miner miner;
+	static PoolAPI poolAPI;
 
 	QActionGroup currencies;
 	ManageMiners* miners;

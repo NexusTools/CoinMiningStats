@@ -9,11 +9,12 @@ class PoolAPI : public QObject
 		Q_OBJECT
 	public:
 		PoolAPI(QObject *parent = 0);
+		void init(int apiHost, QString apiKey);
+
 	private:
 		QTimer apiTimer;
 		int apiHost;
 		QString apiKey;
-		QString apiSecert;
 
 		QNetworkReply* apiDataRequester;
 

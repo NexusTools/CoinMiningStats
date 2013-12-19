@@ -6,13 +6,13 @@ Settings::Settings(QVariantMap settings, QWidget *parent) :
 	setupUi(this);
 	settingsEntry = settings;
 
-	host->setCurrentText(settingsEntry.value("apiHost").toString());
+	host->setCurrentIndex(settingsEntry.value("apiHost").toInt());
 	key->setText(settingsEntry.value("apiHostKey").toString());
 
 	listWidget->setFocus();
 	listWidget->setCurrentRow(0);
 	connect(listWidget, SIGNAL(currentRowChanged(int)), stackedWidget, SLOT(setCurrentIndex(int)));
-	connect(host, SIGNAL(currentTextChanged(QString)), this, SLOT(updateHost()));
+	connect(host, SIGNAL(currentIndexChanged(int)), this, SLOT(updateHost()));
 	connect(key, SIGNAL(textChanged(QString)), this, SLOT(updateKey()));
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(commitSettings()));
 	setAttribute(Qt::WA_DeleteOnClose);
@@ -31,7 +31,7 @@ void Settings::changeEvent(QEvent *e) {
 }
 
 void Settings::updateHost() {
-	settingsEntry.insert("apiHost", host->currentText());
+	settingsEntry.insert("apiHost", host->currentIndex());
 }
 
 void Settings::updateKey() {
