@@ -12,33 +12,35 @@ TARGET = CoinMiningStats
 TEMPLATE = app
 
 linux-g++ {
-    QT += dbus
-    DEFINES += DBUS_NOTIFICATIONS
+	QT += dbus
+	DEFINES += DBUS_NOTIFICATIONS
 }
 
 SOURCES += src/main.cpp\
-        src/mainwindow.cpp \
-    src/graph.cpp \
-    src/settings.cpp \
-    src/loosejson.cpp \
-    src/manageminers.cpp \
-    src/colorindicatorlabel.cpp \
-    src/miner.cpp
+		src/mainwindow.cpp \
+	src/graph.cpp \
+	src/settings.cpp \
+	src/loosejson.cpp \
+	src/manageminers.cpp \
+	src/colorindicatorlabel.cpp \
+	src/miner.cpp \
+	src/poolapi.cpp
 
 HEADERS  += src/mainwindow.h \
-    src/graph.h \
-    src/loosejson.h \
-    src/manageminers.h \
-    src/colorindicatorlabel.h \
-    src/settings.h \
-    src/miner.h
+	src/graph.h \
+	src/loosejson.h \
+	src/manageminers.h \
+	src/colorindicatorlabel.h \
+	src/settings.h \
+	src/miner.h \
+	src/poolapi.h
 
 FORMS    += src/mainwindow.ui \
-    src/settings.ui \
-    src/manageminers.ui
+	src/settings.ui \
+	src/manageminers.ui
 
 OTHER_FILES += \
-    widget.css
+	widget.css
 
 RESOURCES += \
-    resources.qrc
+	resources.qrc

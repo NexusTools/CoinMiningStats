@@ -17,25 +17,19 @@ class Miner : public QObject
 		QProcess minerProcess;
 
 		bool isRunning();
-		void init(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert);
+		void init(QString name, QString applicationPath, QStringList applicationArguments);
 		void start();
 		void stop();
 
 	private:
-		QTimer apiTimer;
 		QString applicationPath;
 		QStringList applicationArguments;
-		int apiHost;
-		QString apiKey;
-		QString apiSecert;
 
 		QTimer startMinerTimer;
 		QTimer stopMinerTimer;
 
 		QFile logFile;
 		QTextStream logStream;
-
-		QNetworkReply* apiDataRequester;
 
 	signals:
 		void updatedStats();
@@ -45,9 +39,6 @@ class Miner : public QObject
 
 		void apiDataReceived(QVariantMap data);
 	public slots:
-		void requestAPIData();
-		void apiDataReply();
-
 		void passStdOut();
 		void passStdErr();
 

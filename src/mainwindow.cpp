@@ -338,6 +338,19 @@ void MainWindow::minersUpdated(QVariantMap data, bool store){
 			menuMining->addAction(action);
 		}
 	}
+	//Convert old settings to new method.
+	if(data.contains("host")) {
+		QVariantMap oldSettingsToNew;
+		oldSettingsToNew.insert("apiHost", data.value("host").toInt());
+		oldSettingsToNew.insert("apiHostKey", data.value("hostKey").toString());
+		settings.setValue("mainSettings", oldSettingsToNew);
+		settings.sync();
+
+		data.remove("host");
+		data.remove("hostKey");
+		data.remove("hostSecert");
+	}
+
 	if(store) {
 		settings.setValue("miners", data);
 		settings.sync();
@@ -396,7 +409,7 @@ void MainWindow::updateSelectedMiner(QAction* action)
 	for(int i = 0; i < minerGroup->actions().count(); i++)
 		minerGroup->actions().at(i)->setEnabled(true);
 
-	miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
+	miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList());
 
 	actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
 }
