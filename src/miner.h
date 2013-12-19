@@ -32,8 +32,8 @@ class Miner : public QObject
 		QTimer startMinerTimer;
 		QTimer stopMinerTimer;
 
-		QFile* logFile;
-		QTextStream* logStream;
+		QFile logFile;
+		QTextStream logStream;
 
 		QNetworkReply* apiDataRequester;
 

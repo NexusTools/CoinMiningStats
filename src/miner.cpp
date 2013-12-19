@@ -5,7 +5,9 @@
 #include "loosejson.h"
 
 Miner::Miner(QObject *parent) :
-	QObject(parent) {
+			 QObject(parent),
+			 logStream(&logFile) {
+
 	apiTimer.setInterval(30000);
 	connect(&minerProcess, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(minerStateChanged(QProcess::ProcessState)));
 
@@ -96,20 +98,22 @@ void Miner::apiDataReply() {
 			returnableValues.insert("unconfirmedReward", map.value("unconfirmed_reward").toReal());
 	}
 	emit apiDataReceived(returnableValues);
+
+	disconnect(apiDataRequester, SIGNAL(finished()), this, SLOT(apiDataReply())); //< Redundancy.
 	apiDataRequester->deleteLater();
 }
 
 void Miner::passStdOut() {
 	QString stdData = minerProcess.readAllStandardOutput().data();
 	qDebug() << stdData;
-	*this->logStream << stdData;
+	logStream << stdData << endl;
 
 }
 
 void Miner::passStdErr() {
 	QString errData = minerProcess.readAllStandardError().data();
 	qDebug() << errData;
-	*this->logStream << errData << endl;
+	logStream << errData << endl;
 }
 
 void Miner::init(QString name, QString applicationPath, QStringList applicationArguments, int apiHost, QString apiKey, QString apiSecert) {
@@ -121,7 +125,12 @@ void Miner::init(QString name, QString applicationPath, QStringList applicationA
 	this->apiHost = apiHost;
 	this->apiKey = apiKey;
 	this->apiSecert = apiSecert;
-	logFile = new QFile(QDir::homePath().append(QDir::separator()).append("CoinMiningStats - ").append(name).append(".log"));
+
+	if(logFile.isOpen()) {
+		logStream.flush();
+		logFile.close();
+	}
+	logFile.setFileName(QDir::homePath().append(QDir::separator()).append("CoinMiningStats - ").append(name).append(".log"));
 
 	requestAPIData();
 	apiTimer.start();
@@ -129,16 +138,17 @@ void Miner::init(QString name, QString applicationPath, QStringList applicationA
 
 void Miner::start() {
 	stop();
+	if(applicationPath.isEmpty()) {
+		emit stopped();
+		return;
+	}
+
+	logFile.open(QFile::WriteOnly | QFile::Text | QFile::Append);
 
 	startMinerTimer.start();
 	minerProcess.start(applicationPath, applicationArguments);
-	if(!logFile->open(QIODevice::ReadOnly | QIODevice::Text | QIODevice::Append)) {
-		qCritical() << "Could not open logging file!";
-		logStream = 0;
-	} else {
-		logStream = new QTextStream(logFile);
-		*this->logStream << endl << endl << "Started at " << QDateTime::currentDateTime().toString() << endl;
-	}
+
+	logStream << endl << endl << "Started at " << QDateTime::currentDateTime().toString() << endl;
 }
 
 void Miner::stop() {
@@ -149,14 +159,14 @@ void Miner::stop() {
 	minerProcess.waitForFinished(3000);
 	if(minerProcess.state() != QProcess::NotRunning) {
 		qWarning() << "Force killing" << name;
-		if(logStream)
-			*this->logStream << "Force killing!" << endl;
+		logStream << "Force killing!" << endl;
 		minerProcess.kill();
 	}
-	if(logStream)
-		*this->logStream << "Stopped." << endl;
-	if(logFile)
-		logFile->close();
+	logStream << "Stopped." << endl;
+	if(logFile.isOpen()) {
+		logStream.flush();
+		logFile.close();
+	}
 }
 
 bool Miner::isRunning() {
@@ -179,6 +189,7 @@ void Miner::checkIfItHasStopped() {
 
 void Miner::minerStateChanged(QProcess::ProcessState state) {
 	qDebug() << "Miner" << name << " State Changed" << state;
+	logStream << "State Changed to " << state << endl;
 	switch(state) {
 		default:
 		return;
