@@ -52,7 +52,7 @@ public slots:
 	void blockInfoReply();
 
 	void minersUpdated(QVariantMap, bool store=true);
-	void settingsUpdated(QVariantMap);
+	void settingsUpdated(QVariantMap, bool store=true);
 	void graphDestroyed();
 	void minerManagementDestroyed();
 	void mainSettingsDestroyed();
@@ -88,7 +88,7 @@ signals:
 	void invertChanged(bool);
 
 private:
-	void initPoolAPI();
+	void initPoolAPI(int host, QString key);
 	friend class ColorIndicatorLabel;
 
 	QString activeCurrency;

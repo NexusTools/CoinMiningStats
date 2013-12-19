@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	idleWatcher.setInterval(500);
 
 	minersUpdated(settings.value("miners").toMap(), false);
+	settingsUpdated(settings.value("mainSettings").toMap(), false);
 
 	exchangeRate = 1;
 	requestBlockInfoUpdate();
@@ -152,16 +153,14 @@ MainWindow::MainWindow(QWidget *parent) :
 		actionIdleControl->setChecked(true);
 		idleControlUpdated();
 	}
-	initPoolAPI();
 
 	connect(actionQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
 	connect(actionNexusTools, SIGNAL(triggered()), this, SLOT(aboutNexusTools()));
 	connect(actionDonate, SIGNAL(triggered()), this, SLOT(supportNexusTools()));
 }
 
-void MainWindow::initPoolAPI() {
-	QVariantMap curSettings = settings.value("mainSettings").toMap();
-	poolAPI.init(curSettings.value("apiHost").toInt(), curSettings.value("apiHostKey").toString());
+void MainWindow::initPoolAPI(int host, QString key) {
+	poolAPI.init(host, key);
 }
 
 void MainWindow::showSettings() {
@@ -175,11 +174,7 @@ void MainWindow::showSettings() {
 	connect(mainSettings, SIGNAL(destroyed()), this, SLOT(mainSettingsDestroyed()));
 }
 
-void MainWindow::settingsUpdated(QVariantMap data) {
-	settings.setValue("mainSettings", data);
-	settings.sync();
-	initPoolAPI();
-
+void MainWindow::settingsUpdated(QVariantMap data, bool store) {
 	int hostType = data.value("apiHost").toInt();
 	switch(hostType) {
 		case 0:
@@ -219,6 +214,12 @@ void MainWindow::settingsUpdated(QVariantMap data) {
 		case 2:
 		break;
 	}
+	if(store) {
+		settings.setValue("mainSettings", data);
+		settings.sync();
+	}
+
+	initPoolAPI(data.value("apiHost").toInt(), data.value("apiHostKey").toString());
 }
 
 void MainWindow::minerStarted() {
@@ -393,8 +394,7 @@ void MainWindow::minersUpdated(QVariantMap data, bool store){
 		QVariantMap oldSettingsToNew;
 		oldSettingsToNew.insert("apiHost", data.value("host").toInt());
 		oldSettingsToNew.insert("apiHostKey", data.value("hostKey").toString());
-		settings.setValue("mainSettings", oldSettingsToNew);
-		settings.sync();
+		settingsUpdated(oldSettingsToNew);
 
 		data.remove("host");
 		data.remove("hostKey");
