@@ -395,7 +395,6 @@ void MainWindow::updateSelectedMiner(QAction* action)
 
 		miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
 
-		actionMinerControl->setEnabled(!miner.isRunning() && !actionIdleControl->isChecked());
 		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
 	}
 }
