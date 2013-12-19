@@ -19,9 +19,6 @@ ManageMiners::ManageMiners(QWidget *parent) :
 	connect(addArgument, SIGNAL(clicked()), this, SLOT(addArg()));
 	connect(moveUp, SIGNAL(clicked()), this, SLOT(moveArgUp()));
 	connect(moveDown, SIGNAL(clicked()), this, SLOT(moveArgDown()));
-//	connect(host, SIGNAL(currentIndexChanged(int)), this, SLOT(storePage()));
-//	connect(key, SIGNAL(textChanged(QString)), this, SLOT(storePage()));
-//	connect(secert, SIGNAL(textChanged(QString)), this, SLOT(storePage()));
 	connect(program, SIGNAL(textChanged(QString)), this, SLOT(storePage()));
 	connect(browse, SIGNAL(clicked()), this, SLOT(browseProgram()));
 	connect(discard, SIGNAL(clicked()), this, SLOT(close()));
@@ -54,9 +51,6 @@ void ManageMiners::storePage() {
 	QListWidgetItem* item = minerList->currentItem();
 	if(item) {
 		QMap<QString, QVariant> minerEntry;
-//		minerEntry.insert("host", host->currentIndex());
-//		minerEntry.insert("hostKey", key->text());
-//		minerEntry.insert("hostSecert", secert->text());
 		minerEntry.insert("program", program->text());
 		QStringList args;
 		for(int i=0; i<arguments->count(); i++)
@@ -133,20 +127,13 @@ void ManageMiners::updateArgumentControls() {
 
 void ManageMiners::updateMinerPage() {
 	blockSignals(true);
+	program->clear();
 	arguments->clear();
 	minerPage->setEnabled(minerList->currentItem());
 	removeMiner->setEnabled(minerPage->isEnabled());
 
 	if(minerPage->isEnabled()) {
 		QMap<QString, QVariant> minerEntry = minerData.value(minerList->currentItem()->text()).toMap();
-//		if(minerEntry.value("host").canConvert(QVariant::Int))
-//			host->setCurrentIndex(minerEntry.value("host").toInt());
-
-//		if(minerEntry.value("hostKey").canConvert(QVariant::String))
-//			key->setText(minerEntry.value("hostKey").toString());
-
-//		if(minerEntry.value("hostSecert").canConvert(QVariant::String))
-//			secert->setText(minerEntry.value("hostSecert").toString());
 
 		if(minerEntry.value("program").canConvert(QVariant::String))
 			program->setText(minerEntry.value("program").toString());

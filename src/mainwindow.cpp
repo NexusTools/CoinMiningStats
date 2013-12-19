@@ -31,11 +31,11 @@ void MainWindow::shutdown(){
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	currencies(0)
-#ifdef DBUS_NOTIFICATIONS
-	,DBusNotificationInterface("org.freedesktop.Notifications",
-							  "/org/freedesktop/Notifications",
-							  "org.freedesktop.Notifications")
-#endif
+  #ifdef DBUS_NOTIFICATIONS
+  ,DBusNotificationInterface("org.freedesktop.Notifications",
+							 "/org/freedesktop/Notifications",
+							 "org.freedesktop.Notifications")
+  #endif
 {
 	qApp->setQuitOnLastWindowClosed(false);
 	setupUi(this);
@@ -163,7 +163,7 @@ void MainWindow::showSettings() {
 
 	mainSettings = new Settings(this);
 	//mainSettings->setMinerData(settings.value("mainSettings"));
-	//connect(mainSettings, SIGNAL(dataUpdated(QVariantMap)), this, SLOT(minersUpdated(QVariantMap)));
+	connect(mainSettings, SIGNAL(dataUpdated(QVariantMap)), this, SLOT(minersUpdated(QVariantMap)));
 	connect(mainSettings, SIGNAL(destroyed()), this, SLOT(mainSettingsDestroyed()));
 }
 
@@ -334,69 +334,67 @@ void MainWindow::minersUpdated(QVariantMap data, bool store){
 			menuMining->addAction(action);
 		}
 	}
-	if(selMiner)
-		selMiner->setChecked(true);
-	updateSelectedMiner(selMiner);
 	if(store) {
 		settings.setValue("miners", data);
 		settings.sync();
 	}
+	if(selMiner)
+		selMiner->setChecked(true);
+	updateSelectedMiner(selMiner);
 }
 
 void MainWindow::updateSelectedMiner(QAction* action)
 {
 	QString minerText = action ? action->text() : settings.value("miner").toString();
 	settings.setValue("miner", minerText);
+	QVariantMap minerEntry = settings.value("miners").toMap().value(minerText).toMap();
+	int hostType = minerEntry.value("host").toInt();
+	qDebug() << minerEntry.value("program").toString();
+	switch(hostType) {
+		case 0:
+			if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked()) {
+				actionLTC->setChecked(true);
+				displayCurrencyChanged(actionLTC);
+			}
 
-	if(!miner.isRunning()) {
-		QVariantMap minerEntry = settings.value("miners").toMap().value(minerText).toMap();
-		int hostType = minerEntry.value("host").toInt();
-		switch(hostType) {
-			case 0:
-				if(actionBTC->isChecked() || actionBTC_USD->isChecked() || actionBTC_EUR->isChecked()) {
-					actionLTC->setChecked(true);
-					displayCurrencyChanged(actionLTC);
-				}
+			actionBTC->setEnabled(false);
+			actionBTC->setChecked(false);
+			actionBTC_USD->setEnabled(false);
+			actionBTC_USD->setChecked(false);
+			actionBTC_EUR->setEnabled(false);
+			actionBTC_EUR->setChecked(false);
 
-				actionBTC->setEnabled(false);
-				actionBTC->setChecked(false);
-				actionBTC_USD->setEnabled(false);
-				actionBTC_USD->setChecked(false);
-				actionBTC_EUR->setEnabled(false);
-				actionBTC_EUR->setChecked(false);
+			actionLTC->setEnabled(true);
+			actionLTC_USD->setEnabled(true);
+			actionLTC_EUR->setEnabled(true);
+		break;
+		case 1:
+			if(actionLTC->isChecked() || actionLTC_USD->isChecked() || actionLTC_EUR->isChecked()) {
+				actionBTC->setChecked(true);
+				displayCurrencyChanged(actionBTC);
+			}
 
-				actionLTC->setEnabled(true);
-				actionLTC_USD->setEnabled(true);
-				actionLTC_EUR->setEnabled(true);
-			break;
-			case 1:
-				if(actionLTC->isChecked() || actionLTC_USD->isChecked() || actionLTC_EUR->isChecked()) {
-					actionBTC->setChecked(true);
-					displayCurrencyChanged(actionBTC);
-				}
+			actionBTC->setEnabled(true);
+			actionBTC_USD->setEnabled(true);
+			actionBTC_EUR->setEnabled(true);
 
-				actionBTC->setEnabled(true);
-				actionBTC_USD->setEnabled(true);
-				actionBTC_EUR->setEnabled(true);
-
-				actionLTC->setEnabled(false);
-				actionLTC->setChecked(false);
-				actionLTC_USD->setEnabled(false);
-				actionLTC_USD->setChecked(false);
-				actionLTC_EUR->setEnabled(false);
-				actionLTC_EUR->setChecked(false);
-			break;
-			case 2:
-			break;
-		}
-
-		for(int i = 0; i < minerGroup->actions().count(); i++)
-			minerGroup->actions().at(i)->setEnabled(true);
-
-		miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
-
-		actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
+			actionLTC->setEnabled(false);
+			actionLTC->setChecked(false);
+			actionLTC_USD->setEnabled(false);
+			actionLTC_USD->setChecked(false);
+			actionLTC_EUR->setEnabled(false);
+			actionLTC_EUR->setChecked(false);
+		break;
+		case 2:
+		break;
 	}
+
+	for(int i = 0; i < minerGroup->actions().count(); i++)
+		minerGroup->actions().at(i)->setEnabled(true);
+
+	miner.init(minerText, minerEntry.value("program").toString(), minerEntry.value("arguments").toStringList(), minerEntry.value("host").toInt(), minerEntry.value("hostKey").toString(), minerEntry.value("hostSecert").toString());
+
+	actionMinerControl->setText(action ? QString("Start `%1`").arg(action->text()) : "Select a Miner");
 }
 
 void MainWindow::checkIdle() {
@@ -461,8 +459,8 @@ void MainWindow::startMiner(){
 
 	QVariantMap minerEntry = settings.value("miners").toMap().value(name).toMap();
 	if(minerEntry.isEmpty()) {
-			qWarning() << "Attempted to Start Invalid Miner" << name;
-			return;
+		qWarning() << "Attempted to Start Invalid Miner" << name;
+		return;
 	}
 
 	for(int i = 0; i < minerGroup->actions().count(); i++)
@@ -609,7 +607,7 @@ void MainWindow::accountDataReply(QVariantMap map) {
 				}
 
 				workers->item(row, 0)->setIcon(style()->standardIcon(workerMap.value("alive").toBool()
-													? QStyle::SP_MediaPlay : QStyle::SP_MediaStop));
+																	 ? QStyle::SP_MediaPlay : QStyle::SP_MediaStop));
 
 				workers->setItem(row, 1, new QTableWidgetItem(workerMap.value("hashrate").toString()));
 				workers->setItem(row, 2, new QTableWidgetItem(workerMap.value("shares").toString()));
@@ -676,10 +674,10 @@ void MainWindow::toggleMiner() {
 void MainWindow::changeEvent(QEvent *e) {
 	QMainWindow::changeEvent(e);
 	switch (e->type()) {
-	case QEvent::LanguageChange:
-		retranslateUi(this);
+		case QEvent::LanguageChange:
+			retranslateUi(this);
 		break;
-	default:
+		default:
 		break;
 	}
 }
